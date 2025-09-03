@@ -21,9 +21,7 @@ define( 'D5_MODULE_VISIBILITY_URL', plugin_dir_url( __FILE__ ) );
  * Enqueue Divi 5 Visual Builder Assets
  */
 function d5_module_visibility_enqueue_assets() {
-	error_log('d5_module_visibility_enqueue_assets');
 	if ( et_core_is_fb_enabled() && et_builder_d5_enabled() ) {
-		error_log('d5_module_visibility_enqueue_assets 2');
 
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
 			[
@@ -51,12 +49,16 @@ function d5_module_visibility_enqueue_assets() {
 				'script'  => [
 					'src'                => D5_MODULE_VISIBILITY_URL . 'build/bundle.js',
 					'deps'               => [
+						'lodash',
+						'divi-vendor-wp-hooks',
 						'divi-modal',
 						'divi-data',
-						'divi-vendor-wp-hooks',
 					],
 					'enqueue_top_window' => false,
 					'enqueue_app_window' => true,
+					'args'               => [
+						'in_footer' => false,
+					],
 				],
 			]
 		);
