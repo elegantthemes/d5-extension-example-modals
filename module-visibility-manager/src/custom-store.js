@@ -92,17 +92,24 @@ const actions = {
 
 // Simple reducer
 const reducer = (state = { items: [] }, action) => {
+  console.log('🔧 STORE REDUCER - Action received:', action.type, action);
+  console.log('🔧 STORE REDUCER - Current state:', state);
+  
   switch (action.type) {
     case 'ADD_ITEM':
-      return {
+      const newStateAdd = {
         ...state,
         items: [...state.items, action.item],
       };
+      console.log('🔧 STORE REDUCER - New state after ADD_ITEM:', newStateAdd);
+      return newStateAdd;
     case 'REMOVE_ITEM':
-      return {
+      const newStateRemove = {
         ...state,
         items: state.items.filter(item => item.id !== action.itemId),
       };
+      console.log('🔧 STORE REDUCER - New state after REMOVE_ITEM:', newStateRemove);
+      return newStateRemove;
     default:
       return state;
   }
@@ -122,11 +129,10 @@ const getInitialState = () => {
     // Load from localStorage
     const savedItems = JSON.parse(localStorage.getItem('divi-custom-items') || '[]');
     if (savedItems.length > 0) {
-      console.log('📂 Loaded from localStorage:', savedItems.length, 'items');
       return { items: savedItems };
     }
   } catch (e) {
-    console.log('⚠️ Error loading from localStorage:', e);
+    // Silent error for localStorage
   }
   
   // Default state if no saved data

@@ -1,22 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useSelect, useDispatch } from '@divi/data';
+import { 
+  initializeModuleFilter, 
+  updateHiddenModulesCache, 
+  applyModuleVisibilityChanges 
+} from '../module-filter';
 
-// Apply module visibility filter using the Divi 5 pattern
-if (typeof window !== 'undefined' && window.vendor && window.vendor.wp && window.vendor.wp.hooks) {
-  window.vendor.wp.hooks.addFilter(
-    'divi.moduleLibrary.moduleMapping',
-    'moduleVisibilityManager',
-    (moduleMapping) => {
-      // Example: Hide the audio module
-      // In a full implementation, this would be dynamic based on user settings
-      const filteredMapping = { ...moduleMapping };
-      delete filteredMapping['divi/audio'];
-      
-      return filteredMapping;
-    },
-    10 // Priority
-  );
-}
+// Initialize the module filter when the component loads
+initializeModuleFilter();
+
+/**
+ * Store Watcher Component - Triggers module library updates when store changes
+ * This component uses useSelect to watch store changes and updates the module filter
+ * Following the same pattern as AppFrameStyleContainer for admin bar updates
+ */
+const ModuleVisibilityWatcher = () => {
+  // Watch the custom store for changes using useSelect (consistent with Divi 5 patterns)
+  const { hiddenModules } = useSelect(select => {
+    const customStore = select('divi/custom-test');
+    if (!customStore) {
+      return { hiddenModules: [] };
+    }
+    return {
+      hiddenModules: customStore.getItems() || [],
+    };
+  }, []);
+
+  // When hiddenModules changes, update the filter cache
+  useEffect(() => {
+    // Update the module filter cache with current store data
+    updateHiddenModulesCache(hiddenModules);
+    
+    // Apply module visibility changes using official Divi 5 store actions
+    applyModuleVisibilityChanges(hiddenModules);
+  }, [hiddenModules]); // Re-run when hiddenModules changes (reactive to store)
+
+  return null; // This component doesn't render anything, just watches store
+};
 
 
 /**
@@ -107,13 +127,22 @@ const ModuleVisibilityManager = () => {
   }, [hiddenModules]); // Add hiddenModules as dependency
 
   const handleToggle = (moduleName) => {
+    console.log('🔧 CHECKBOX CLICKED:', moduleName);
+    
     const module = modules.find(m => m.name === moduleName);
     const newVisibility = !module?.isVisible;
+    
+    console.log('🔧 Current module:', module);
+    console.log('🔧 New visibility will be:', newVisibility);
+    console.log('🔧 Current hiddenModules:', hiddenModules);
+    console.log('🔧 addItem/removeItem functions:', { addItem: !!addItem, removeItem: !!removeItem });
     
     if (newVisibility) {
       // Module is being checked (made visible) - remove from hidden list
       const hiddenModule = hiddenModules.find(item => item.name === moduleName);
+      console.log('🔧 Found hidden module to remove:', hiddenModule);
       if (hiddenModule && removeItem) {
+        console.log('🔧 Calling removeItem with id:', hiddenModule.id);
         removeItem(hiddenModule.id);
       }
     } else {
@@ -124,6 +153,7 @@ const ModuleVisibilityManager = () => {
           name: moduleName,
           created: new Date().toLocaleTimeString()
         };
+        console.log('🔧 Calling addItem with:', newHiddenModule);
         addItem(newHiddenModule);
       }
     }
@@ -196,7 +226,6 @@ const ModuleVisibilityManager = () => {
                   onChange={() => handleToggle(module.name)}
                   style={{ marginRight: '8px' }}
                 />
-                {module.isVisible ? '✅ Visible' : '❌ Hidden'}
               </label>
             </div>
           ))}
@@ -248,14 +277,10 @@ const ModuleVisibilityManager = () => {
 export const SimpleModuleList = () => {
   return (
     <div style={{ padding: '20px' }}>
-      <h3>📋 Module Visibility Manager</h3>
-      <p style={{ 
-        marginBottom: '20px', 
-        fontSize: '14px', 
-        color: '#666' 
-      }}>
-        Manage module visibility in the Visual Builder. Hidden modules are stored persistently using the custom store.
-      </p>
+   
+      
+      {/* Include the store watcher to trigger real-time updates */}
+      <ModuleVisibilityWatcher />
       
       <ModuleVisibilityManager />
     </div>
