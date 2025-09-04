@@ -6,7 +6,7 @@ import { registerCustomStore } from './custom-store';
 // Register custom store after module library is ready
 addAction('divi.moduleLibrary.registerModuleLibraryStore.after', 'moduleVisibilityCustomStore', () => {
   registerCustomStore();
-  console.log('🎯 Custom store registered via hook');
+  // Custom store registered via hook
 });
 
 /**

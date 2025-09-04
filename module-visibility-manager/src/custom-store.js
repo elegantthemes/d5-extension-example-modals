@@ -1,99 +1,28 @@
-import { registerStore, dispatch } from '@divi/data';
-import { loggedFetch } from '@divi/rest';
+import { registerStore, dispatch, select } from '@divi/data';
 
-// Actions with server sync (following Divi pattern)
+// Actions following Divi pattern: instant store updates, no side effects
 const actions = {
   addItem: (item) => {
-    // Dispatch the action first to update the store
-    const action = {
+    console.log('🔍 STORE ACTION: addItem called with:', item);
+    return {
       type: 'ADD_ITEM',
       item,
     };
-    
-    // Use real Divi sync-to-server endpoint with proper payload format
-    setTimeout(() => {
-      try {
-        // Save to localStorage as backup
-        const currentItems = JSON.parse(localStorage.getItem('divi-custom-items') || '[]');
-        const newItems = [...currentItems, item];
-        localStorage.setItem('divi-custom-items', JSON.stringify(newItems));
-        
-        // Use real Divi endpoint with minimal required payload
-        loggedFetch({
-          method: 'POST',
-          restRoute: '/divi/v1/sync-to-server',
-          data: {
-            // Required fields (minimal)
-            post_id: window.ETBuilderBackend?.post_id || 0,
-            syncType: 'draft',
-            // Add our custom data to preferences
-            preferences: {
-              ...window.divi?.data?.select('divi/app-preferences')?.getAll() || {},
-              customModuleData: newItems,
-            },
-            content: {
-              post_content: '',
-            },
-          },
-        }, true);
-        
-        console.log('✅ Synced to real Divi endpoint:', item);
-      } catch (e) {
-        console.log('❌ Save error:', e);
-      }
-    }, 0);
-    
-    return action;
   },
 
   removeItem: (itemId) => {
-    // Dispatch the action first to update the store
-    const action = {
+    console.log('🔍 STORE ACTION: removeItem called with:', itemId);
+    return {
       type: 'REMOVE_ITEM',
       itemId,
     };
-    
-    // Use real Divi sync-to-server endpoint with proper payload format
-    setTimeout(() => {
-      try {
-        // Remove from localStorage as backup
-        const currentItems = JSON.parse(localStorage.getItem('divi-custom-items') || '[]');
-        const newItems = currentItems.filter(item => item.id !== itemId);
-        localStorage.setItem('divi-custom-items', JSON.stringify(newItems));
-        
-        // Use real Divi endpoint with minimal required payload
-        loggedFetch({
-          method: 'POST',
-          restRoute: '/divi/v1/sync-to-server',
-          data: {
-            // Required fields (minimal)
-            post_id: window.ETBuilderBackend?.post_id || 0,
-            syncType: 'draft',
-            // Add our custom data to preferences
-            preferences: {
-              ...window.divi?.data?.select('divi/app-preferences')?.getAll() || {},
-              customModuleData: newItems,
-            },
-            content: {
-              post_content: '',
-            },
-          },
-        }, true);
-        
-        console.log('✅ Removed item synced to real Divi endpoint:', itemId);
-      } catch (e) {
-        console.log('❌ Remove error:', e);
-      }
-    }, 0);
-    
-    return action;
   },
 };
 
 // Simple reducer
 const reducer = (state = { items: [] }, action) => {
-  console.log('🔧 STORE REDUCER - Action received:', action.type, action);
-  console.log('🔧 STORE REDUCER - Current state:', state);
+  console.log('🔍 STORE REDUCER: Action received:', action.type, action);
+  console.log('🔍 STORE REDUCER: Current state:', state);
   
   switch (action.type) {
     case 'ADD_ITEM':
@@ -101,14 +30,14 @@ const reducer = (state = { items: [] }, action) => {
         ...state,
         items: [...state.items, action.item],
       };
-      console.log('🔧 STORE REDUCER - New state after ADD_ITEM:', newStateAdd);
+      console.log('🔍 STORE REDUCER: New state after ADD_ITEM:', newStateAdd);
       return newStateAdd;
     case 'REMOVE_ITEM':
       const newStateRemove = {
         ...state,
         items: state.items.filter(item => item.id !== action.itemId),
       };
-      console.log('🔧 STORE REDUCER - New state after REMOVE_ITEM:', newStateRemove);
+      console.log('🔍 STORE REDUCER: New state after REMOVE_ITEM:', newStateRemove);
       return newStateRemove;
     default:
       return state;
@@ -121,40 +50,148 @@ const selectors = {
   getItemsCount: (state) => state.items.length,
 };
 
+// Effects for persistence (following Divi 5 pattern using applyEffects)
+const effects = {
+  // Persist to app preferences when items change
+  ADD_ITEM: (action, store) => {
+    const state = store.getState();
+    console.log('🔍 EFFECT: ADD_ITEM triggered, saving to app preferences');
+    
+    // Save to app preferences (proper Divi 5 way)
+    if (select('divi/app-preferences')) {
+      try {
+        dispatch('divi/app-preferences').set(['module', 'hiddenModules'], state.items);
+        console.log('🔍 EFFECT: Saved to app preferences:', state.items);
+      } catch (e) {
+        console.log('🔍 EFFECT: App preferences save error:', e);
+      }
+    }
+    
+    // Temporary localStorage fallback
+    try {
+      localStorage.setItem('divi-module-visibility', JSON.stringify(state.items));
+      console.log('🔍 EFFECT: Saved to localStorage fallback:', state.items);
+    } catch (e) {
+      console.log('🔍 EFFECT: localStorage error:', e);
+    }
+  },
+  
+  REMOVE_ITEM: (action, store) => {
+    const state = store.getState();
+    console.log('🔍 EFFECT: REMOVE_ITEM triggered, saving to app preferences');
+    
+    // Save to app preferences (proper Divi 5 way)
+    if (select('divi/app-preferences')) {
+      try {
+        dispatch('divi/app-preferences').set(['module', 'hiddenModules'], state.items);
+        console.log('🔍 EFFECT: Saved to app preferences:', state.items);
+      } catch (e) {
+        console.log('🔍 EFFECT: App preferences save error:', e);
+      }
+    }
+    
+    // Temporary localStorage fallback
+    try {
+      localStorage.setItem('divi-module-visibility', JSON.stringify(state.items));
+      console.log('🔍 EFFECT: Saved to localStorage fallback:', state.items);
+    } catch (e) {
+      console.log('🔍 EFFECT: localStorage error:', e);
+    }
+  },
+};
+
 // Server sync moved to action creators
 
-// Initial state loaded from localStorage (fallback until server ready)
+// Initial state following Divi 5 pattern - load from app preferences
 const getInitialState = () => {
+  console.log('🔍 STORE: Loading initial state...');
+  
+  // First try to load from app preferences (proper Divi 5 way)
   try {
-    // Load from localStorage
-    const savedItems = JSON.parse(localStorage.getItem('divi-custom-items') || '[]');
-    if (savedItems.length > 0) {
-      return { items: savedItems };
+    if (select('divi/app-preferences')) {
+      const hiddenModules = select('divi/app-preferences').get(['module', 'hiddenModules']);
+      if (hiddenModules) {
+        console.log('🔍 STORE: Loaded from app preferences:', hiddenModules);
+        return { items: hiddenModules };
+      }
     }
   } catch (e) {
-    // Silent error for localStorage
+    console.log('🔍 STORE: App preferences not available yet:', e);
   }
   
-  // Default state if no saved data
-  return {
-    items: [{ id: 1, name: 'Initial Item', created: new Date().toLocaleTimeString() }],
-  };
+  // Check backend data (PHP to JS)
+  if (typeof window !== 'undefined' && window.ETBuilderBackend) {
+    console.log('🔍 STORE: ETBuilderBackend available:', !!window.ETBuilderBackend);
+    console.log('🔍 STORE: ETBuilderBackend keys:', Object.keys(window.ETBuilderBackend || {}));
+    
+    const customData = window.ETBuilderBackend?.moduleVisibilityData;
+    if (customData) {
+      console.log('🔍 STORE: Found backend data:', customData);
+      return { items: customData };
+    }
+  }
+  
+  // Fallback to localStorage
+  try {
+    const stored = localStorage.getItem('divi-module-visibility');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      console.log('🔍 STORE: Loaded from localStorage fallback:', parsed);
+      return { items: parsed };
+    }
+  } catch (e) {
+    console.log('🔍 STORE: localStorage error:', e);
+  }
+  
+  console.log('🔍 STORE: No data found, using empty state');
+  return { items: [] };
 };
 
 // Register the store
 export const registerCustomStore = () => {
+  console.log('🔍 STORE: Attempting to register custom store...');
+  
   // Prevent double registration
   if (window.wp?.data?.select('divi/custom-test')) {
-    console.log('⚠️ Store already registered');
+    console.log('🔍 STORE: Already registered, skipping');
     return;
   }
   
-  registerStore('divi/custom-test', {
+  const initialState = getInitialState();
+  console.log('🔍 STORE: Initial state:', initialState);
+  
+  const store = registerStore('divi/custom-test', {
     actions,
     reducer,
     selectors,
-    initialState: getInitialState(),
+    initialState,
   });
   
-  console.log('✅ Custom store registered with server sync: divi/custom-test');
+  // Apply simple effects pattern (plugin-compatible)
+  const originalDispatch = store.dispatch;
+  store.dispatch = (action) => {
+    const result = originalDispatch(action);
+    
+    // Run effects after action is processed
+    if (effects[action.type]) {
+      try {
+        effects[action.type](action, store);
+      } catch (e) {
+        console.log('🔍 EFFECT ERROR:', e);
+      }
+    }
+    
+    return result;
+  };
+  
+  console.log('🔍 STORE: Custom store registered with effects');
+  
+  // Test the store immediately
+  setTimeout(() => {
+    const testStore = window.divi?.data?.select('divi/custom-test');
+    console.log('🔍 STORE: Testing store access:', !!testStore);
+    if (testStore) {
+      console.log('🔍 STORE: Test getItems():', testStore.getItems());
+    }
+  }, 100);
 };

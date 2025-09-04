@@ -1,81 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useSelect, useDispatch } from '@divi/data';
-import { 
-  initializeModuleFilter, 
-  updateHiddenModulesCache, 
-  applyModuleVisibilityChanges 
-} from '../module-filter';
 
-// Initialize the module filter when the component loads
-initializeModuleFilter();
-
-/**
- * Store Watcher Component - Triggers module library updates when store changes
- * This component uses useSelect to watch store changes and updates the module filter
- * Following the same pattern as AppFrameStyleContainer for admin bar updates
- */
-const ModuleVisibilityWatcher = () => {
-  // Watch the custom store for changes using useSelect (consistent with Divi 5 patterns)
-  const { hiddenModules } = useSelect(select => {
-    const customStore = select('divi/custom-test');
-    if (!customStore) {
-      return { hiddenModules: [] };
-    }
-    return {
-      hiddenModules: customStore.getItems() || [],
-    };
-  }, []);
-
-  // When hiddenModules changes, update the filter cache
-  useEffect(() => {
-    // Update the module filter cache with current store data
-    updateHiddenModulesCache(hiddenModules);
-    
-    // Apply module visibility changes using official Divi 5 store actions
-    applyModuleVisibilityChanges(hiddenModules);
-  }, [hiddenModules]); // Re-run when hiddenModules changes (reactive to store)
-
-  return null; // This component doesn't render anything, just watches store
-};
+import { useReactiveModuleFilter } from '../hooks';
 
 
 /**
  * Module Visibility Manager Component
  * Component to test module discovery and visibility management
- * Now integrated with custom store for persistence
+ * Now uses reactive useSelect pattern for instant filter updates
  */
 const ModuleVisibilityManager = () => {
   const [modules, setModules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get data from custom store for hidden modules
-  const { items: hiddenModules, itemsCount } = useSelect(select => {
+  // Use our custom reactive hook - this automatically handles filter updates!
+  const hiddenModules = useReactiveModuleFilter();
+
+  // Get additional store data
+  const itemsCount = useSelect(select => {
     const customStore = select('divi/custom-test');
-    if (!customStore) {
-      return { items: [], itemsCount: 0 };
-    }
-    return {
-      items: customStore.getItems(),
-      itemsCount: customStore.getItemsCount(),
-    };
+    return customStore?.getItemsCount() || 0;
   }, []);
 
   // Get dispatch actions
   const { addItem, removeItem } = useDispatch('divi/custom-test') || {};
 
+  // Discover modules once on mount
   useEffect(() => {
     const discoverModules = () => {
       try {
-        // Access the module library store
         if (window.divi?.data?.select) {
           const moduleLibraryStore = window.divi.data.select('divi/module-library');
           
           if (moduleLibraryStore?.getModules) {
             const allModules = moduleLibraryStore.getModules();
-            
-            // Create a set of hidden module names for quick lookup
-            const hiddenModuleNames = new Set(hiddenModules.map(item => item.name));
             
             // Transform modules to our format
             const moduleList = Object.entries(allModules || {}).map(([name, config]) => {
@@ -97,7 +56,7 @@ const ModuleVisibilityManager = () => {
                 name,
                 title,
                 category,
-                isVisible: !hiddenModuleNames.has(name), // Check if module is in hidden list
+                isVisible: true, // Default all to visible
               };
             });
 
@@ -116,33 +75,29 @@ const ModuleVisibilityManager = () => {
       }
     };
 
-    // Try to discover modules immediately
     discoverModules();
+  }, []); // Only run once on mount
+
+  // Update visibility based on hidden modules (separate effect)
+  useEffect(() => {
+    const hiddenModuleNames = new Set(hiddenModules.map(item => item.name));
     
-    // If it fails, try again after a short delay (in case stores aren't ready yet)
-    if (modules.length === 0) {
-      const timer = setTimeout(discoverModules, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [hiddenModules]); // Add hiddenModules as dependency
+    setModules(prevModules => 
+      prevModules.map(module => ({
+        ...module,
+        isVisible: !hiddenModuleNames.has(module.name)
+      }))
+    );
+  }, [hiddenModules]); // Update visibility when hiddenModules changes
 
   const handleToggle = (moduleName) => {
-    console.log('🔧 CHECKBOX CLICKED:', moduleName);
-    
     const module = modules.find(m => m.name === moduleName);
     const newVisibility = !module?.isVisible;
-    
-    console.log('🔧 Current module:', module);
-    console.log('🔧 New visibility will be:', newVisibility);
-    console.log('🔧 Current hiddenModules:', hiddenModules);
-    console.log('🔧 addItem/removeItem functions:', { addItem: !!addItem, removeItem: !!removeItem });
     
     if (newVisibility) {
       // Module is being checked (made visible) - remove from hidden list
       const hiddenModule = hiddenModules.find(item => item.name === moduleName);
-      console.log('🔧 Found hidden module to remove:', hiddenModule);
       if (hiddenModule && removeItem) {
-        console.log('🔧 Calling removeItem with id:', hiddenModule.id);
         removeItem(hiddenModule.id);
       }
     } else {
@@ -153,7 +108,6 @@ const ModuleVisibilityManager = () => {
           name: moduleName,
           created: new Date().toLocaleTimeString()
         };
-        console.log('🔧 Calling addItem with:', newHiddenModule);
         addItem(newHiddenModule);
       }
     }
@@ -170,22 +124,16 @@ const ModuleVisibilityManager = () => {
 
   if (isLoading) {
     return (
-      <div style={{ textAlign: 'center' }}>
-        <div>🔄 Discovering modules...</div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-          Check browser console for detailed information
-        </div>
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <div>Loading modules...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', color: 'red' }}>
-        <div>❌ Error: {error}</div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-          Check browser console for more details
-        </div>
+      <div style={{ textAlign: 'center', color: 'red', padding: '20px' }}>
+        <div>Error loading modules: {error}</div>
       </div>
     );
   }
@@ -244,9 +192,10 @@ const ModuleVisibilityManager = () => {
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
         • Hidden modules: {itemsCount}<br />
-        • Changes are applied in real-time to the Visual Builder<br />
-        • Hidden modules are stored in custom store for persistence<br />
-        • Note: This is a demonstration of the filtering capability
+        • Changes apply instantly to Insert Module dialog<br />
+        • Uses reactive useSelect hook pattern (like Divi core)<br />
+        • Filter automatically re-registers when store changes<br />
+        • No manual triggers or page refresh required
       </div>
       
       {/* Store Debug Info */}
@@ -273,15 +222,11 @@ const ModuleVisibilityManager = () => {
 /**
  * Main Component - Module Visibility Manager with Custom Store Integration
  * Shows module visibility manager with integrated custom store functionality
+ * Uses reactive useSelect pattern for instant filter updates
  */
 export const SimpleModuleList = () => {
   return (
     <div style={{ padding: '20px' }}>
-   
-      
-      {/* Include the store watcher to trigger real-time updates */}
-      <ModuleVisibilityWatcher />
-      
       <ModuleVisibilityManager />
     </div>
   );
