@@ -45,6 +45,49 @@ const actions = {
     
     return action;
   },
+
+  removeItem: (itemId) => {
+    // Dispatch the action first to update the store
+    const action = {
+      type: 'REMOVE_ITEM',
+      itemId,
+    };
+    
+    // Use real Divi sync-to-server endpoint with proper payload format
+    setTimeout(() => {
+      try {
+        // Remove from localStorage as backup
+        const currentItems = JSON.parse(localStorage.getItem('divi-custom-items') || '[]');
+        const newItems = currentItems.filter(item => item.id !== itemId);
+        localStorage.setItem('divi-custom-items', JSON.stringify(newItems));
+        
+        // Use real Divi endpoint with minimal required payload
+        loggedFetch({
+          method: 'POST',
+          restRoute: '/divi/v1/sync-to-server',
+          data: {
+            // Required fields (minimal)
+            post_id: window.ETBuilderBackend?.post_id || 0,
+            syncType: 'draft',
+            // Add our custom data to preferences
+            preferences: {
+              ...window.divi?.data?.select('divi/app-preferences')?.getAll() || {},
+              customModuleData: newItems,
+            },
+            content: {
+              post_content: '',
+            },
+          },
+        }, true);
+        
+        console.log('✅ Removed item synced to real Divi endpoint:', itemId);
+      } catch (e) {
+        console.log('❌ Remove error:', e);
+      }
+    }, 0);
+    
+    return action;
+  },
 };
 
 // Simple reducer
@@ -54,6 +97,11 @@ const reducer = (state = { items: [] }, action) => {
       return {
         ...state,
         items: [...state.items, action.item],
+      };
+    case 'REMOVE_ITEM':
+      return {
+        ...state,
+        items: state.items.filter(item => item.id !== action.itemId),
       };
     default:
       return state;

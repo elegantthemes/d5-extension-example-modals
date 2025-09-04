@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelect, useDispatch } from '@divi/data';
 
 // Apply module visibility filter using the Divi 5 pattern
 if (typeof window !== 'undefined' && window.vendor && window.vendor.wp && window.vendor.wp.hooks) {
@@ -17,13 +18,31 @@ if (typeof window !== 'undefined' && window.vendor && window.vendor.wp && window
   );
 }
 
+
 /**
- * Simple component to test module discovery without Redux store complexity.
+ * Module Visibility Manager Component
+ * Component to test module discovery and visibility management
+ * Now integrated with custom store for persistence
  */
-export const SimpleModuleList = () => {
+const ModuleVisibilityManager = () => {
   const [modules, setModules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get data from custom store for hidden modules
+  const { items: hiddenModules, itemsCount } = useSelect(select => {
+    const customStore = select('divi/custom-test');
+    if (!customStore) {
+      return { items: [], itemsCount: 0 };
+    }
+    return {
+      items: customStore.getItems(),
+      itemsCount: customStore.getItemsCount(),
+    };
+  }, []);
+
+  // Get dispatch actions
+  const { addItem, removeItem } = useDispatch('divi/custom-test') || {};
 
   useEffect(() => {
     const discoverModules = () => {
@@ -34,6 +53,9 @@ export const SimpleModuleList = () => {
           
           if (moduleLibraryStore?.getModules) {
             const allModules = moduleLibraryStore.getModules();
+            
+            // Create a set of hidden module names for quick lookup
+            const hiddenModuleNames = new Set(hiddenModules.map(item => item.name));
             
             // Transform modules to our format
             const moduleList = Object.entries(allModules || {}).map(([name, config]) => {
@@ -55,7 +77,7 @@ export const SimpleModuleList = () => {
                 name,
                 title,
                 category,
-                isVisible: true, // Default to visible
+                isVisible: !hiddenModuleNames.has(name), // Check if module is in hidden list
               };
             });
 
@@ -82,13 +104,31 @@ export const SimpleModuleList = () => {
       const timer = setTimeout(discoverModules, 1000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [hiddenModules]); // Add hiddenModules as dependency
 
   const handleToggle = (moduleName) => {
     const module = modules.find(m => m.name === moduleName);
     const newVisibility = !module?.isVisible;
     
-    // Update local state
+    if (newVisibility) {
+      // Module is being checked (made visible) - remove from hidden list
+      const hiddenModule = hiddenModules.find(item => item.name === moduleName);
+      if (hiddenModule && removeItem) {
+        removeItem(hiddenModule.id);
+      }
+    } else {
+      // Module is being unchecked (made hidden) - add to hidden list
+      if (addItem) {
+        const newHiddenModule = {
+          id: Date.now(),
+          name: moduleName,
+          created: new Date().toLocaleTimeString()
+        };
+        addItem(newHiddenModule);
+      }
+    }
+    
+    // Update local state immediately for better UX
     setModules(prevModules => 
       prevModules.map(m => 
         m.name === moduleName 
@@ -100,7 +140,7 @@ export const SimpleModuleList = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
         <div>🔄 Discovering modules...</div>
         <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
           Check browser console for detailed information
@@ -111,7 +151,7 @@ export const SimpleModuleList = () => {
 
   if (error) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
+      <div style={{ textAlign: 'center', color: 'red' }}>
         <div>❌ Error: {error}</div>
         <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
           Check browser console for more details
@@ -121,21 +161,21 @@ export const SimpleModuleList = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h3>Available Modules ({modules.length})</h3>
+    <div>
+      <h4>📋 Available Modules ({modules.length})</h4>
       
       {modules.length === 0 ? (
         <div style={{ color: '#666', fontStyle: 'italic' }}>
           No modules discovered yet...
         </div>
       ) : (
-        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {modules.map((module) => (
             <div key={module.name} style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '10px 0',
+              padding: '8px 0',
               borderBottom: '1px solid #eee'
             }}>
               <div>
@@ -165,7 +205,7 @@ export const SimpleModuleList = () => {
       
       {/* Info panel */}
       <div style={{ 
-        marginTop: '20px', 
+        marginTop: '15px', 
         padding: '10px',
         background: '#f5f5f5',
         fontSize: '12px', 
@@ -174,9 +214,50 @@ export const SimpleModuleList = () => {
       }}>
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
+        • Hidden modules: {itemsCount}<br />
         • Changes are applied in real-time to the Visual Builder<br />
+        • Hidden modules are stored in custom store for persistence<br />
         • Note: This is a demonstration of the filtering capability
       </div>
+      
+      {/* Store Debug Info */}
+      {hiddenModules.length > 0 && (
+        <div style={{ 
+          marginTop: '10px', 
+          padding: '10px',
+          background: '#e8f5e8',
+          fontSize: '12px', 
+          color: '#333',
+          borderRadius: '4px',
+          borderLeft: '4px solid #4caf50'
+        }}>
+          <strong>Hidden Modules Store:</strong><br />
+          {hiddenModules.map(item => (
+            <div key={item.id}>• {item.name} (added: {item.created})</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Main Component - Module Visibility Manager with Custom Store Integration
+ * Shows module visibility manager with integrated custom store functionality
+ */
+export const SimpleModuleList = () => {
+  return (
+    <div style={{ padding: '20px' }}>
+      <h3>📋 Module Visibility Manager</h3>
+      <p style={{ 
+        marginBottom: '20px', 
+        fontSize: '14px', 
+        color: '#666' 
+      }}>
+        Manage module visibility in the Visual Builder. Hidden modules are stored persistently using the custom store.
+      </p>
+      
+      <ModuleVisibilityManager />
     </div>
   );
 };
