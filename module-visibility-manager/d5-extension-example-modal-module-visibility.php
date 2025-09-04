@@ -53,6 +53,7 @@ function d5_module_visibility_enqueue_assets() {
 						'divi-vendor-wp-hooks',
 						'divi-modal',
 						'divi-data',
+						'divi-module-library',
 					],
 					'enqueue_top_window' => false,
 					'enqueue_app_window' => true,
