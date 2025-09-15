@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { WrapperContainer, Header, BodyContainer, PanelContainer } from '@divi/modal';
 import { ErrorBoundary } from '@divi/error-boundary';
 
-import { SimpleModuleList } from './simple-component';
+import { ModuleVisibilityList } from './module-visibility-list';
 
 /**
  * Module Visibility Manager Modal Component.
@@ -38,7 +38,7 @@ export const ModuleVisibilityManagerModal = (props) => {
         <Header name={__('Module Visibility Manager', 'et_builder')} />
         <BodyContainer>
           <PanelContainer id="module-visibility-manager" opened>
-            <SimpleModuleList />
+            <ModuleVisibilityList />
           </PanelContainer>
         </BodyContainer>
       </WrapperContainer>

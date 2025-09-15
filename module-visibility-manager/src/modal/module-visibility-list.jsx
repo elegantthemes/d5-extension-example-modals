@@ -224,7 +224,7 @@ const ModuleVisibilityManager = () => {
  * Shows module visibility manager with integrated custom store functionality
  * Uses reactive useSelect pattern for instant filter updates
  */
-export const SimpleModuleList = () => {
+export const ModuleVisibilityList = () => {
   return (
     <div style={{ padding: '20px' }}>
       <ModuleVisibilityManager />
