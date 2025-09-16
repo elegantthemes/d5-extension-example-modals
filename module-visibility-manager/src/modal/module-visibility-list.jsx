@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSelect, useDispatch } from '@divi/data';
+import { useSelect, useDispatch, select } from '@divi/data';
 
 import { useReactiveModuleFilter } from '../hooks';
 
@@ -30,8 +30,8 @@ const ModuleVisibilityManager = () => {
   useEffect(() => {
     const discoverModules = () => {
       try {
-        if (window.divi?.data?.select) {
-          const moduleLibraryStore = window.divi.data.select('divi/module-library');
+        if (select) {
+          const moduleLibraryStore = select('divi/module-library');
           
           if (moduleLibraryStore?.getModules) {
             const allModules = moduleLibraryStore.getModules();
@@ -66,7 +66,7 @@ const ModuleVisibilityManager = () => {
             throw new Error('Module library store not available');
           }
         } else {
-          throw new Error('Divi data store not available');
+          throw new Error('Divi data select function not available');
         }
       } catch (err) {
         setError(err.message);
@@ -140,7 +140,7 @@ const ModuleVisibilityManager = () => {
 
   return (
     <div>
-      <h4>📋 Available Modules ({modules.length})</h4>
+      <h4>📋 Available sssModules ({modules.length})</h4>
       
       {modules.length === 0 ? (
         <div style={{ color: '#666', fontStyle: 'italic' }}>
