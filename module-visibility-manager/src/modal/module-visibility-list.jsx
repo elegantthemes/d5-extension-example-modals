@@ -29,27 +29,51 @@ const ModuleVisibilityManager = () => {
   // Discover modules once on mount
   useEffect(() => {
     const discoverModules = () => {
+      // Clear any previous errors
+      setError(null);
+      
+      // Check for essential dependencies first
+      if (!select) {
+        setError('Divi data select function not available');
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        if (select) {
-          const moduleLibraryStore = select('divi/module-library');
-          
-          if (moduleLibraryStore?.getModules) {
-            const allModules = moduleLibraryStore.getModules();
+        const moduleLibraryStore = select('divi/module-library');
+        
+        if (!moduleLibraryStore) {
+          setError('Module library store not available');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!moduleLibraryStore.getModules || typeof moduleLibraryStore.getModules !== 'function') {
+          setError('Module library getModules method not available');
+          setIsLoading(false);
+          return;
+        }
+        
+        const allModules = moduleLibraryStore.getModules();
             
             // Transform modules to our format
             const moduleList = Object.entries(allModules || {}).map(([name, config]) => {
               let title = name;
               let category = 'unknown';
               
-              try {
-                if (moduleLibraryStore.getModuleTitle) {
-                  title = moduleLibraryStore.getModuleTitle(name) || name;
+              // Use if-else for anticipated checks instead of expensive try-catch
+              if (moduleLibraryStore.getModuleTitle && typeof moduleLibraryStore.getModuleTitle === 'function') {
+                const moduleTitle = moduleLibraryStore.getModuleTitle(name);
+                if (moduleTitle && typeof moduleTitle === 'string') {
+                  title = moduleTitle;
                 }
-                if (moduleLibraryStore.getModuleCategory) {
-                  category = moduleLibraryStore.getModuleCategory(name) || 'unknown';
+              }
+              
+              if (moduleLibraryStore.getModuleCategory && typeof moduleLibraryStore.getModuleCategory === 'function') {
+                const moduleCategory = moduleLibraryStore.getModuleCategory(name);
+                if (moduleCategory && typeof moduleCategory === 'string') {
+                  category = moduleCategory;
                 }
-              } catch (e) {
-                // Silent catch
               }
               
               return {
@@ -61,16 +85,11 @@ const ModuleVisibilityManager = () => {
             });
 
             setModules(moduleList);
-            setError(null);
-          } else {
-            throw new Error('Module library store not available');
-          }
-        } else {
-          throw new Error('Divi data select function not available');
-        }
+            setIsLoading(false);
       } catch (err) {
-        setError(err.message);
-      } finally {
+        // Handle unexpected errors only (store access issues, etc.)
+        const errorMessage = err?.message || 'Unexpected error occurred while discovering modules';
+        setError(errorMessage);
         setIsLoading(false);
       }
     };
@@ -140,7 +159,7 @@ const ModuleVisibilityManager = () => {
 
   return (
     <div>
-      <h4>📋 Available sssModules ({modules.length})</h4>
+      <h4>📋 Available Modules ({modules.length})</h4>
       
       {modules.length === 0 ? (
         <div style={{ color: '#666', fontStyle: 'italic' }}>
