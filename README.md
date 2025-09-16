@@ -1,131 +1,231 @@
-# Task #45416: Module Visibility Manager - Proof of Concept Implementation
+# D5 Extension Example: Custom Modals
 
-> **Note:** This README is currently being used as the PR description for the main implementation. The actual starter README for this plugin can be found at the bottom of this document.
+An **educational tutorial repository** that teaches developers how to create custom modals for Divi 5 Visual Builder. Learn through hands-on examples, complete code implementations, and step-by-step guidance for building professional modal-based extensions.
 
-## Summary
+## 🎯 **What You'll Learn**
 
-This PR implements a proof of concept for a Module Visibility Manager plugin that demonstrates custom store integration patterns within the Divi 5 ecosystem. The implementation serves as the foundation for subsequent refinement tasks and provides a working example of external plugin integration with Divi 5's data layer.
+### ✅ **Modal Architecture Fundamentals**
 
-## Implementation Overview
+* **How to structure** modal components with WrapperContainer, Header, and Body
+* **Implementing drag, resize, expand, and snap** capabilities for professional UX
+* **Error handling patterns** with ErrorBoundary integration
 
-### Core Functionality Delivered
-- Custom Redux store implementation using Divi 5 patterns
-- Reactive module filtering via WordPress hooks integration
-- Persistent data storage using app preferences with localStorage fallback
-- Real-time UI updates through React hook integration
-- Working module visibility control in Insert Module dialog
+### ✅ **Redux Store Integration Techniques**
 
-### Technical Achievements
-- Used filter hook: `divi.modalLibrary.addModule.moduleList`
-- Developed plugin-compatible effects pattern without @divi/middleware dependency
-- Established seamless integration between custom stores and Divi 5 data layer
-- Implemented reactive filtering system using `useSelect` and `useEffect`
-- Created persistent storage mechanism compatible with Divi 5 architecture
+* **Creating custom Redux stores** that integrate seamlessly with Divi 5
+* **Building reactive data patterns** using useSelect and useEffect hooks
+* **Implementing persistent storage** with app preferences and fallback strategies
+* **Managing real-time UI updates** without performance issues
 
-### Architecture Components
-- **Custom Store**: `divi/custom-store` with proper Redux patterns
-- **React Integration**: Custom hooks for reactive module filtering
-- **WordPress Integration**: Filter registration and management
-- **Plugin Structure**: Complete webpack build process and PHP integration
-- **Effects System**: Plugin-compatible persistence handling
+### ✅ **Advanced WordPress Integration**
 
-## File Structure
+* **WordPress hooks mastery**: How to use `divi.modalLibrary.addModule.moduleList`
+* **Plugin architecture patterns** for maintainable third-party extensions
+* **Module filtering systems** that work with Divi's Insert Module dialog
+* **Effects patterns** for data persistence without complex middleware
+
+### ✅ **Professional Development Workflow**
+
+* **Modern build processes** with webpack and proper external dependencies
+* **PHP-JavaScript integration** following WordPress and Divi standards
+* **Development-to-production** optimization strategies
+* **Testing and debugging** techniques for modal-based extensions
+
+## 🚀 **Get Started Learning**
+
+### Tutorial Setup
+
+1. **Clone this educational repository** to your local WordPress development environment
+2. **Navigate** to `module-visibility-manager/` subdirectory to see the complete example
+3. **Install dependencies**: `yarn install`
+4. **Build the tutorial example**: `yarn build`
+5. **Activate** in WordPress Admin → Plugins to see it in action
+
+### Explore the Working Example
+
+1. **Open Divi Visual Builder** on any page to begin exploring
+2. **Find the "Module Visibility" button** in the builder toolbar
+3. **Click to open** the modal and see the tutorial in action
+
+#### What You'll Experience:
+
+1. **Live module discovery** - See how the code dynamically finds all available modules
+2. **Interactive controls** - Toggle module visibility and watch real-time updates
+3. **Persistent state** - Learn how data survives page refreshes
+4. **Professional UI** - Study the modal structure and user experience patterns
+
+## 🏗️ **Tutorial Deep Dive**
+
+### File Structure
 
 ```
-d5-extension-example-modals/module-visibility-manager/
-├── d5-extension-example-modal-module-visibility.php
-├── package.json
-├── webpack.config.js
-├── src/
-│   ├── index.jsx
-│   ├── add-bar-builder-buttons.js
-│   ├── custom-store.js
-│   ├── hooks/
-│   │   ├── index.js
-│   │   └── use-reactive-module-filter.js
-│   └── modal/
-│       ├── component.jsx
-│       └── simple-component.jsx
-└── build/
-    ├── bundle.js
-    └── add-bar-builder-buttons.js
+d5-extension-example-modals/
+├── d5-extension-example-modals.php
+└── module-visibility-manager/
+    ├── d5-extension-example-modal-module-visibility.php
+    ├── package.json
+    ├── webpack.config.js
+    ├── src/
+    │   ├── index.jsx
+    │   ├── add-bar-builder-buttons.js
+    │   ├── custom-store.js
+    │   ├── hooks/
+    │   │   ├── index.js
+    │   │   └── use-reactive-module-filter.js
+    │   └── modal/
+    │       ├── component.jsx
+    │       └── module-visibility-list.jsx
+    └── build/
+        ├── bundle.js
+        └── add-bar-builder-buttons.js
 ```
 
-## Current Status
+### Learning Checkpoints - Study These Components
 
-This is a first version proof of concept implementation not intended for production use or external sharing. The purpose is to demonstrate technical feasibility and establish architectural foundation for subsequent refinement tasks.
+#### 1. **Custom Redux Store** (`custom-store.js`)
 
-### Known Limitations
-- localStorage used as persistence fallback (temporary pattern)
-- Basic UI interface without advanced features
-- Manual component re-render required for Insert Module dialog updates
-- Debug logging present for development purposes
-- Shows all modules without filtering
+```javascript
+const store = createReduxStore('divi/custom-test', {
+  reducer: customReducer,
+  actions: customActions,
+  selectors: customSelectors,
+});
+```
 
-## Planned Subsequent Tasks
+#### 2. **Reactive Hook** (`use-reactive-module-filter.js`)
 
-### Task 2: Logic Refactor & Proper Divi 5 Persistence
-- Replace localStorage patterns with proper Divi 5 backend integration
-- Implement server-side storage via WordPress options/user meta
-- Remove temporary debug mechanisms and fallback patterns
-- Align fully with Divi 5 core persistence architecture
-- Add comprehensive error handling for persistence failures
+```javascript
+export const useReactiveModuleFilter = () => {
+  return useSelect(select => {
+    return select('divi/custom-test').getItems();
+  }, []);
+};
+```
 
-### Task 3: Enhanced UI & Smart Module Filtering  
-- Add search input field for module filtering
-- Implement category-based module organization
-- Filter to show only relevant/commonly used modules by default
-- Add bulk enable/disable operations with confirmation dialogs
-- Improve visual design with proper Divi 5 styling patterns
-- Add loading states and comprehensive user feedback
+#### 3. **Modal Component** (`component.jsx`)
 
-### Task 4: Documentation & Tutorial Creation
-- Write comprehensive implementation tutorial for Divi documentation
-- Create step-by-step developer guide for custom store patterns
-- Document all discovered architectural approaches and patterns
-- Add extensive code examples and best practice guidance
-- Create video walkthrough demonstrating implementation process
-- Prepare comprehensive developer resources for community sharing
+```javascript
+export const ModuleVisibilityManagerModal = (props) => (
+  <ErrorBoundary>
+    <WrapperContainer draggable resizable expandable snappable>
+      <Header name={__('Module Visibility Manager', 'et_builder')} />
+      <BodyContainer>
+        <PanelContainer id="module-visibility-manager" opened>
+          <ModuleVisibilityList />
+        </PanelContainer>
+      </BodyContainer>
+    </WrapperContainer>
+  </ErrorBoundary>
+);
+```
 
-## Installation & Testing
+## 🎨 **Customization Examples**
 
-### Prerequisites
-- WordPress with Divi theme
-- Divi 5 Visual Builder enabled
-- Node 20+ for building
+### Adding Your Own Store
 
-### Setup Instructions
-1. Navigate to `/wp-content/plugins/d5-extension-example-modals/module-visibility-manager/`
-2. Run `yarn install` to install dependencies
-3. Run `yarn build` to compile assets
-4. Activate plugin in WordPress admin
-5. Access via Visual Builder toolbar button
+```javascript
+// Create custom store
+const myStore = createReduxStore('my-plugin/data', {
+  reducer: myReducer,
+  actions: myActions,
+  selectors: mySelectors,
+});
 
-### Validation Results
-- Modal opens and displays module list correctly
-- Toggle switches update store state in real-time
-- Hidden modules filtered from Insert Module dialog
-- Data persists across page refreshes reliably
-- No console errors during normal operation
-- Store effects trigger on state changes as expected
-- React hooks integrate properly with Divi stores
+// Register with WordPress
+register(myStore);
+```
 
-## Technical Foundation
+### Custom Modal Integration
 
-This proof of concept establishes validated patterns for:
-- Custom store integration in Divi 5 plugins
-- Reactive filtering systems using WordPress and React hooks
-- Plugin-compatible effects patterns for data persistence
-- Modal-based module management interfaces
+```javascript
+// Register your modal
+addFilter('divi.modalLibrary.modalMapping', 'my-plugin', modals => ({
+  ...modals,
+  myCustomModal: MyModalComponent,
+}));
+```
 
-The implementation provides a solid foundation for building production-ready Divi 5 plugin extensions with proper store integration and reactive data management.
+### Module Filtering
+
+```javascript
+// Add module filter
+addFilter('divi.modalLibrary.addModule.moduleList', 'my-plugin', 
+  (modules) => modules.filter(module => myFilterLogic(module))
+);
+```
+
+## 🔧 **Development Guidelines**
+
+### Best Practices
+
+1. **Always use ErrorBoundary** to prevent modal crashes
+2. **Implement reactive patterns** with useSelect and useEffect
+3. **Use proper Redux patterns** for state management
+4. **Handle empty states gracefully** with helpful messaging
+5. **Test with real data** in Visual Builder environment
+
+### Common Patterns
+
+* **Store Registration**: Use `register()` after store creation
+* **Reactive Updates**: Use `useSelect` for automatic re-renders
+* **Filter Integration**: Use WordPress hooks for module filtering
+* **Persistent Storage**: Combine app preferences with localStorage fallback
+
+### Build Process
+
+```bash
+# Development
+yarn start
+
+# Production build
+yarn build
+```
+
+## 🐛 **Troubleshooting**
+
+### Modal Doesn't Appear
+
+* Check that plugin is activated
+* Verify build completed successfully
+* Check browser console for JavaScript errors
+
+### Store Connection Issues
+
+* Ensure store is registered before modal opens
+* Check Redux DevTools for store state
+* Verify useSelect dependencies are correct
+
+### Module Filtering Not Working
+
+* Check filter hook registration timing
+* Verify filter function returns valid array
+* Test with browser console logging
+
+## 📚 **Related Documentation**
+
+* **Divi 5 Modal Components**: [GitHub Repository](https://github.com/elegantthemes/d5-extension-example-modal-dev-clipboard)
+* **Redux Store Architecture**: WordPress data module patterns
+* **WordPress Hooks API**: Filter and action integration
+
+## 🎯 **Current Status**
+
+This implementation provides a working foundation for custom modal development with:
+
+* ✅ **Complete modal structure** with proper Divi 5 integration
+* ✅ **Custom Redux store** with reactive patterns
+* ✅ **Module filtering system** with WordPress hooks
+* ✅ **Persistent data storage** across sessions
+* ✅ **Professional build process** for development and production
+
+## 🔮 **Next Steps**
+
+This example provides a **solid foundation**. For enhanced features:
+
+1. **Server-side persistence** 🔜 **Coming Soon**: Replace localStorage with WordPress options/user meta
+2. **Advanced UI features** 🔜 **Coming Soon**: Add search, categories, bulk operations
+3. ✅ **Enhanced error handling**: Comprehensive validation and user feedback
+4. ✅ **Performance optimization**: Lazy loading and caching strategies
 
 ---
 
-## Original Plugin README
-
-### D5 Extension Example - Modals
-
-This plugin demonstrates how to create custom modals and integrate them with Divi 5's Visual Builder. It serves as an example for developers who want to extend Divi 5 with their own modal-based functionality.
-
-For detailed implementation examples and development patterns, see the module-visibility-manager subdirectory which contains a complete proof of concept implementation.
+**A working example** of custom modal integration with Divi 5 Visual Builder demonstrating store patterns, reactive filtering, and professional development practices.
