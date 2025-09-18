@@ -29,16 +29,10 @@ export const useReactiveModuleFilter = () => {
   useEffect(() => {
     console.log('🔍 HOOK: useEffect triggered with hiddenModules:', hiddenModules);
     
-    if (typeof window !== 'undefined' && window.vendor && window.vendor.wp && window.vendor.wp.hooks) {
+    if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
       console.log('🔍 HOOK: WordPress hooks available, registering filter');
       
-      // Remove any existing filter first to prevent duplicates
-      window.vendor.wp.hooks.removeFilter(
-        'divi.modalLibrary.addModule.moduleList',
-        'moduleVisibilityManager'
-      );
-
-      // Add the reactive filter
+      // Add the reactive filter (removeFilter is handled in cleanup)
       window.vendor.wp.hooks.addFilter(
         'divi.modalLibrary.addModule.moduleList',
         'moduleVisibilityManager',

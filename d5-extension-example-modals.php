@@ -50,33 +50,11 @@ function d5_extension_example_modals_check_requirements() {
 }
 
 /**
- * Show admin notice if requirements are not met.
- *
- * @since 0.1.0
- */
-function d5_extension_example_modals_admin_notice() {
-	?>
-	<div class="notice notice-error">
-		<p>
-			<strong><?php esc_html_e( 'D5 Extension Example: Modals', 'd5-extension-example-modals' ); ?></strong>
-			<?php esc_html_e( 'requires the Divi theme with Divi 5 Visual Builder enabled.', 'd5-extension-example-modals' ); ?>
-		</p>
-	</div>
-	<?php
-}
-
-/**
  * Initialize the plugin.
  *
  * @since 0.1.0
  */
 function d5_extension_example_modals_init() {
-	// // Check requirements.
-	// if ( ! d5_extension_example_modals_check_requirements() ) {
-	// 	add_action( 'admin_notices', 'd5_extension_example_modals_admin_notice' );
-	// 	return;
-	// }
-
 	// Load example modules.
 	d5_extension_example_modals_load_examples();
 }

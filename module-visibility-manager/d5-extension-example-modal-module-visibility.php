@@ -1,14 +1,13 @@
 <?php
-/*
-Plugin Name: D5 Extension Example: Module Visibility Manager
-Plugin URI:
-Description: Custom modal for managing which modules appear in the module library
-Version:     0.1.0
-Author:      Elegant Themes
-Author URI:  https://elegantthemes.com
-License:     GPL2
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
-*/
+/**
+ * Module Visibility Manager Example
+ *
+ * Demonstrates custom modal implementation for managing which modules
+ * appear in the Divi 5 module library. This file provides the PHP
+ * integration and WordPress hooks for the Module Visibility Manager
+ * example within the d5-extension-example-modals plugin.
+ *
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Direct access forbidden.' );
