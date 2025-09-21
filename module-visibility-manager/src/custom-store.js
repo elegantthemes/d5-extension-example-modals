@@ -15,20 +15,55 @@ const actions = {
       itemId,
     };
   },
+
+  reloadFromPreferences: () => {
+    return {
+      type: 'RELOAD_FROM_PREFERENCES',
+    };
+  },
 };
 
 // Simple reducer
-const reducer = (state = { items: [] }, action) => {
+const reducer = (state = { items: [], isLoading: true }, action) => {
   switch (action.type) {
     case 'ADD_ITEM':
       return {
         ...state,
         items: [...state.items, action.item],
+        isLoading: false,
       };
     case 'REMOVE_ITEM':
       return {
         ...state,
         items: state.items.filter(item => item.id !== action.itemId),
+        isLoading: false,
+      };
+    case 'RELOAD_FROM_PREFERENCES':
+      // Reload data from app-preferences
+      try {
+        const appPrefsStore = select('divi/app-preferences');
+        if (appPrefsStore) {
+          const adminBarPreference = appPrefsStore.get(['app', 'adminBar']);
+          if (adminBarPreference?.moduleVisibility) {
+            return {
+              ...state,
+              items: adminBarPreference.moduleVisibility,
+              isLoading: false,
+            };
+          }
+          // App-preferences available but no data
+          return {
+            ...state,
+            items: [],
+            isLoading: false,
+          };
+        }
+      } catch (e) {
+        console.log('❌ Error reloading from app-preferences:', e);
+      }
+      return {
+        ...state,
+        isLoading: false,
       };
     default:
       return state;
@@ -39,6 +74,7 @@ const reducer = (state = { items: [] }, action) => {
 const selectors = {
   getItems: (state) => state.items,
   getItemsCount: (state) => state.items.length,
+  isLoading: (state) => state.isLoading,
 };
 
 // Effects for persistence (following Divi 5 pattern using applyEffects)
@@ -47,40 +83,46 @@ const effects = {
   ADD_ITEM: (action, store) => {
     const state = store.getState();
     
-    // Save to app preferences (proper Divi 5 way)
-    if (select('divi/app-preferences')) {
-      try {
-        dispatch('divi/app-preferences').set(['module', 'hiddenModules'], state.items);
-      } catch (e) {
-        // Silent error handling
-      }
-    }
-    
-    // Temporary localStorage fallback
+    // Save to adminBar.moduleVisibility (proven working method)
     try {
-      localStorage.setItem('divi-module-visibility', JSON.stringify(state.items));
+      const preferences = select('divi/app-preferences');
+      if (preferences) {
+        const adminBarPreference = preferences.get(['app', 'adminBar']);
+        dispatch('divi/app-preferences').set(['app', 'adminBar'], {
+          ...adminBarPreference,
+          moduleVisibility: state.items
+        });
+        
+        // Verify save was successful
+        setTimeout(() => {
+          const savedAdminBar = select('divi/app-preferences').get(['app', 'adminBar']);
+        }, 100);
+      }
     } catch (e) {
-      // Silent error handling
+      console.log('❌ Error saving to adminBar:', e);
     }
   },
   
   REMOVE_ITEM: (action, store) => {
     const state = store.getState();
     
-    // Save to app preferences (proper Divi 5 way)
-    if (select('divi/app-preferences')) {
-      try {
-        dispatch('divi/app-preferences').set(['module', 'hiddenModules'], state.items);
-      } catch (e) {
-        // Silent error handling
-      }
-    }
-    
-    // Temporary localStorage fallback
+    // Save to adminBar.moduleVisibility (proven working method)
     try {
-      localStorage.setItem('divi-module-visibility', JSON.stringify(state.items));
+      const preferences = select('divi/app-preferences');
+      if (preferences) {
+        const adminBarPreference = preferences.get(['app', 'adminBar']);
+        dispatch('divi/app-preferences').set(['app', 'adminBar'], {
+          ...adminBarPreference,
+          moduleVisibility: state.items
+        });
+        
+        // Verify save was successful
+        setTimeout(() => {
+          const savedAdminBar = select('divi/app-preferences').get(['app', 'adminBar']);
+        }, 100);
+      }
     } catch (e) {
-      // Silent error handling
+      console.log('❌ Error saving to adminBar:', e);
     }
   },
 };
@@ -89,38 +131,33 @@ const effects = {
 
 // Initial state following Divi 5 pattern - load from app preferences
 const getInitialState = () => {
-  // First try to load from app preferences (proper Divi 5 way)
   try {
-    if (select('divi/app-preferences')) {
-      const hiddenModules = select('divi/app-preferences').get(['module', 'hiddenModules']);
-      if (hiddenModules) {
-        return { items: hiddenModules };
+    const appPrefsStore = select('divi/app-preferences');
+    
+    if (appPrefsStore) {
+      const adminBarPreference = appPrefsStore.get(['app', 'adminBar']);
+      if (adminBarPreference?.moduleVisibility) {
+        return { items: adminBarPreference.moduleVisibility, isLoading: false };
       }
+      
+      // App-preferences is available but no data yet
+      return { items: [], isLoading: false };
     }
   } catch (e) {
-    // App preferences not available yet
+    console.log('❌ Error loading from app-preferences:', e);
   }
   
-  // Check backend data (PHP to JS)
-  if (typeof window !== 'undefined' && window.ETBuilderBackend) {
-    const customData = window.ETBuilderBackend?.moduleVisibilityData;
-    if (customData) {
-      return { items: customData };
+  // App-preferences not available yet - show loading state
+  // Check if it becomes available later
+  setTimeout(() => {
+    const laterAppPrefs = select('divi/app-preferences');
+    if (laterAppPrefs) {
+      // Trigger a store update to reload data
+      dispatch('divi/custom-test').reloadFromPreferences();
     }
-  }
+  }, 1000);
   
-  // Fallback to localStorage
-  try {
-    const stored = localStorage.getItem('divi-module-visibility');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return { items: parsed };
-    }
-  } catch (e) {
-    // localStorage error
-  }
-  
-  return { items: [] };
+  return { items: [], isLoading: true };
 };
 
 // Register the store

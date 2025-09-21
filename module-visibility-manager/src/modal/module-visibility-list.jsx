@@ -18,9 +18,12 @@ const ModuleVisibilityManager = () => {
   const hiddenModules = useReactiveModuleFilter();
 
   // Get additional store data
-  const itemsCount = useSelect(select => {
+  const { itemsCount, storeIsLoading } = useSelect(select => {
     const customStore = select('divi/custom-test');
-    return customStore?.getItemsCount() || 0;
+    return {
+      itemsCount: customStore?.getItemsCount() || 0,
+      storeIsLoading: customStore?.isLoading() || false,
+    };
   }, []);
 
   // Get dispatch actions
@@ -141,10 +144,15 @@ const ModuleVisibilityManager = () => {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || storeIsLoading) {
     return (
       <div style={{ textAlign: 'center', padding: '20px' }}>
-        <div>Loading modules...</div>
+        <div>
+          {storeIsLoading ? 'Loading preferences...' : 'Loading modules...'}
+        </div>
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+          {storeIsLoading && 'Waiting for Divi app-preferences store...'}
+        </div>
       </div>
     );
   }
@@ -211,10 +219,10 @@ const ModuleVisibilityManager = () => {
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
         • Hidden modules: {itemsCount}<br />
+        • Store status: {storeIsLoading ? 'Loading preferences...' : 'Ready'}<br />
         • Changes apply instantly to Insert Module dialog<br />
-        • Uses reactive useSelect hook pattern (like Divi core)<br />
-        • Filter automatically re-registers when store changes<br />
-        • No manual triggers or page refresh required
+        • Uses Divi 5 adminBar.moduleVisibility persistence<br />
+        • Filter automatically re-registers when store changes
       </div>
       
       {/* Store Debug Info */}
