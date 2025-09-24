@@ -14,6 +14,64 @@ const ModuleVisibilityManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Test divi/settings access
+  const pluginData = useSelect((select) => {
+    const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
+    console.log('Plugin data from divi/settings:', data);
+    return data;
+  }, []);
+
+  // Get dispatch to add new data
+  const { add } = useDispatch('divi/settings');
+
+  // Auto-save function using regular fetch with WordPress REST API
+  const saveToDatabase = async (data) => {
+    try {
+      // Convert immutable data to plain JavaScript array
+      const plainData = Array.isArray(data) ? data.map(item => ({
+        nodeName: item.nodeName,
+        visible: Boolean(item.visible)
+      })) : [];
+      
+      const response = await fetch('/wp-json/divi/v1/d5-extension-data/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': window.wpApiSettings?.nonce || ''
+        },
+        body: JSON.stringify({ data: plainData })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result && result.success) {
+          console.log('✅ Data saved to database');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Save failed:', error);
+    }
+  };
+
+  // Combined update: store + database persistence
+  const updateDataWithPersistence = (newData) => {
+    // 1. Update store immediately (for UI reactivity)
+    add('d5ExtensionExampleModalsData', newData);
+    
+    // 2. Save to database (debounced)
+    clearTimeout(window.d5ExtensionSaveTimeout);
+    window.d5ExtensionSaveTimeout = setTimeout(() => saveToDatabase(newData), 1000);
+  };
+
+  // Function to add a dummy entry (now with persistence)
+  const addDummyEntry = () => {
+    const currentData = select('divi/settings').getSetting('d5ExtensionExampleModalsData', []);
+    const newEntry = { nodeName: `module_${Date.now()}`, visible: Math.random() > 0.5 };
+    const updatedData = [...currentData, newEntry];
+    
+    updateDataWithPersistence(updatedData);
+  };
+
   // Use our custom reactive hook - this automatically handles filter updates!
   const hiddenModules = useReactiveModuleFilter();
 
@@ -115,6 +173,9 @@ const ModuleVisibilityManager = () => {
   const handleToggle = (moduleName) => {
     const module = modules.find(m => m.name === moduleName);
     const newVisibility = !module?.isVisible;
+    
+    // Add dummy entry to divi/settings when toggling
+    addDummyEntry();
     
     if (newVisibility) {
       // Module is being checked (made visible) - remove from hidden list
