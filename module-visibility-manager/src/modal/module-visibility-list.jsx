@@ -19,7 +19,7 @@ const ModuleVisibilityManager = () => {
     const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
     console.log('Plugin data from divi/settings:', data);
     return data;
-  }, []);
+  });
 
   // Get dispatch to add new data
   const { add } = useDispatch('divi/settings');
@@ -63,11 +63,35 @@ const ModuleVisibilityManager = () => {
     window.d5ExtensionSaveTimeout = setTimeout(() => saveToDatabase(newData), 1000);
   };
 
-  // Function to add a dummy entry (now with persistence)
-  const addDummyEntry = () => {
+  // Function to clean up old dummy data (one-time cleanup)
+  const cleanupDummyData = () => {
     const currentData = select('divi/settings').getSetting('d5ExtensionExampleModalsData', []);
-    const newEntry = { nodeName: `module_${Date.now()}`, visible: Math.random() > 0.5 };
-    const updatedData = [...currentData, newEntry];
+    
+    // Filter out dummy entries (those starting with 'module_')
+    const cleanedData = currentData.filter(item => !item.nodeName.startsWith('module_'));
+    
+    if (cleanedData.length !== currentData.length) {
+      console.log(`🧹 Cleaning up ${currentData.length - cleanedData.length} dummy entries`);
+      updateDataWithPersistence(cleanedData);
+    }
+  };
+
+  // Function to toggle module visibility
+  const toggleModuleVisibility = (moduleName, currentlyVisible) => {
+    const currentData = select('divi/settings').getSetting('d5ExtensionExampleModalsData', []);
+    
+    // Find existing entry or create new one
+    const existingIndex = currentData.findIndex(item => item.nodeName === moduleName);
+    let updatedData;
+    
+    if (existingIndex >= 0) {
+      // Update existing entry
+      updatedData = [...currentData];
+      updatedData[existingIndex] = { nodeName: moduleName, visible: !currentlyVisible };
+    } else {
+      // Add new entry
+      updatedData = [...currentData, { nodeName: moduleName, visible: !currentlyVisible }];
+    }
     
     updateDataWithPersistence(updatedData);
   };
@@ -75,17 +99,16 @@ const ModuleVisibilityManager = () => {
   // Use our custom reactive hook - this automatically handles filter updates!
   const hiddenModules = useReactiveModuleFilter();
 
-  // Get additional store data
-  const { itemsCount, storeIsLoading } = useSelect(select => {
-    const customStore = select('divi/custom-test');
-    return {
-      itemsCount: customStore?.getItemsCount() || 0,
-      storeIsLoading: customStore?.isLoading() || false,
-    };
-  }, []);
+  // Get module visibility data from divi/settings
+  const moduleVisibilityData = useSelect((select) => {
+    const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
+    return Array.isArray(data) ? data : [];
+  });
 
-  // Get dispatch actions
-  const { addItem, removeItem } = useDispatch('divi/custom-test') || {};
+  // Clean up dummy data once on mount
+  useEffect(() => {
+    cleanupDummyData();
+  }, []);
 
   // Discover modules once on mount
   useEffect(() => {
@@ -158,42 +181,28 @@ const ModuleVisibilityManager = () => {
     discoverModules();
   }, []); // Only run once on mount
 
-  // Update visibility based on hidden modules (separate effect)
+  // Update visibility based on moduleVisibilityData (separate effect)
   useEffect(() => {
-    const hiddenModuleNames = new Set(hiddenModules.map(item => item.name));
+    // Create a map for faster lookup
+    const visibilityMap = new Map();
+    moduleVisibilityData.forEach(item => {
+      visibilityMap.set(item.nodeName, item.visible);
+    });
     
     setModules(prevModules => 
       prevModules.map(module => ({
         ...module,
-        isVisible: !hiddenModuleNames.has(module.name)
+        isVisible: visibilityMap.has(module.name) ? visibilityMap.get(module.name) : true // Default to visible
       }))
     );
-  }, [hiddenModules]); // Update visibility when hiddenModules changes
+  }, [moduleVisibilityData]); // Update visibility when moduleVisibilityData changes
 
   const handleToggle = (moduleName) => {
     const module = modules.find(m => m.name === moduleName);
     const newVisibility = !module?.isVisible;
     
-    // Add dummy entry to divi/settings when toggling
-    addDummyEntry();
-    
-    if (newVisibility) {
-      // Module is being checked (made visible) - remove from hidden list
-      const hiddenModule = hiddenModules.find(item => item.name === moduleName);
-      if (hiddenModule && removeItem) {
-        removeItem(hiddenModule.id);
-      }
-    } else {
-      // Module is being unchecked (made hidden) - add to hidden list
-      if (addItem) {
-        const newHiddenModule = {
-          id: Date.now(),
-          name: moduleName,
-          created: new Date().toLocaleTimeString()
-        };
-        addItem(newHiddenModule);
-      }
-    }
+    // Toggle module visibility using the new divi/settings integration
+    toggleModuleVisibility(moduleName, !newVisibility);
     
     // Update local state immediately for better UX
     setModules(prevModules => 
@@ -205,15 +214,10 @@ const ModuleVisibilityManager = () => {
     );
   };
 
-  if (isLoading || storeIsLoading) {
+  if (isLoading) {
     return (
       <div style={{ textAlign: 'center', padding: '20px' }}>
-        <div>
-          {storeIsLoading ? 'Loading preferences...' : 'Loading modules...'}
-        </div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-          {storeIsLoading && 'Waiting for Divi app-preferences store...'}
-        </div>
+        <div>Loading modules...</div>
       </div>
     );
   }
@@ -279,11 +283,11 @@ const ModuleVisibilityManager = () => {
       }}>
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
-        • Hidden modules: {itemsCount}<br />
-        • Store status: {storeIsLoading ? 'Loading preferences...' : 'Ready'}<br />
+        • Hidden modules: {hiddenModules.length}<br />
+        • Data entries: {moduleVisibilityData.length}<br />
         • Changes apply instantly to Insert Module dialog<br />
-        • Uses Divi 5 adminBar.moduleVisibility persistence<br />
-        • Filter automatically re-registers when store changes
+        • Uses Divi 5 settings store with database persistence<br />
+        • Filter automatically re-registers when data changes
       </div>
       
       {/* Store Debug Info */}
@@ -298,8 +302,8 @@ const ModuleVisibilityManager = () => {
           borderLeft: '4px solid #4caf50'
         }}>
           <strong>Hidden Modules Store:</strong><br />
-          {hiddenModules.map(item => (
-            <div key={item.id}>• {item.name} (added: {item.created})</div>
+          {hiddenModules.map((item, index) => (
+            <div key={`hidden-${item.name}-${index}`}>• {item.name}</div>
           ))}
         </div>
       )}
