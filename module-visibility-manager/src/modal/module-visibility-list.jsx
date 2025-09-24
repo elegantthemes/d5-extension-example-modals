@@ -14,11 +14,10 @@ const ModuleVisibilityManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Test divi/settings access (for debugging purposes)
-  const pluginData = useSelect((select) => {
-    const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
-    return data;
-  });
+  // Split into focused selector - only get raw data from store
+  const pluginData = useSelect(select => 
+    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
+  );
 
   // Get dispatch to add new data
   const { add } = useDispatch('divi/settings');
@@ -98,11 +97,13 @@ const ModuleVisibilityManager = () => {
   // Use our custom reactive hook - this automatically handles filter updates!
   const hiddenModules = useReactiveModuleFilter();
 
-  // Get module visibility data from divi/settings
-  const moduleVisibilityData = useSelect((select) => {
-    const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
-    return Array.isArray(data) ? data : [];
-  });
+  // Get module visibility data from divi/settings - focused selector
+  const rawModuleVisibilityData = useSelect(select => 
+    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
+  );
+
+  // Process data outside useSelect - simple array check without useMemo
+  const moduleVisibilityData = Array.isArray(rawModuleVisibilityData) ? rawModuleVisibilityData : [];
 
   // Clean up dummy data once on mount
   useEffect(() => {

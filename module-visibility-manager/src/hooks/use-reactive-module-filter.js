@@ -5,7 +5,7 @@ import { useSelect } from '@divi/data';
  * Custom Hook for Reactive Module Filtering
  * 
  * This hook uses useSelect to watch store changes and updates the filter reactively.
- * Similar pattern to use-process-dynamic-content-title.ts in Divi core.
+ * Follows Divi 5 best practices by using focused selectors and processing data outside useSelect.
  * 
  * The hook automatically registers/unregisters the WordPress filter based on store changes,
  * ensuring that the Insert Module dialog shows only visible modules in real-time.
@@ -15,15 +15,15 @@ import { useSelect } from '@divi/data';
  * @returns {Array} Array of hidden module objects from the store
  */
 export const useReactiveModuleFilter = () => {
-  // Watch the divi/settings store reactively using useSelect
-  const hiddenModules = useSelect(select => {
-    const settingsData = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
-    // Convert to the format expected by the filter (array of objects with 'name' property)
-    return Array.isArray(settingsData) ? settingsData.map(item => ({
-      name: item.nodeName,
-      visible: item.visible
-    })).filter(item => !item.visible) : []; // Only return hidden modules
-  }); // No dependency array - always reactive to store changes
+  // Split into focused selector - only get raw data from store
+  const settingsData = useSelect(select => 
+    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
+  );
+
+  // Process data outside useSelect - simple filtering without useMemo
+  const hiddenModules = Array.isArray(settingsData) 
+    ? settingsData.filter(item => !item.visible)
+    : [];
   
 
   // Initialize the filter when component mounts and update when store changes
