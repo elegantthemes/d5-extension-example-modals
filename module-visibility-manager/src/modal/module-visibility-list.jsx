@@ -14,10 +14,9 @@ const ModuleVisibilityManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Test divi/settings access
+  // Test divi/settings access (for debugging purposes)
   const pluginData = useSelect((select) => {
     const data = select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []);
-    console.log('Plugin data from divi/settings:', data);
     return data;
   });
 
@@ -199,16 +198,16 @@ const ModuleVisibilityManager = () => {
 
   const handleToggle = (moduleName) => {
     const module = modules.find(m => m.name === moduleName);
-    const newVisibility = !module?.isVisible;
+    const currentlyVisible = module?.isVisible ?? true; // Default to visible if not found
     
     // Toggle module visibility using the new divi/settings integration
-    toggleModuleVisibility(moduleName, !newVisibility);
+    toggleModuleVisibility(moduleName, currentlyVisible);
     
     // Update local state immediately for better UX
     setModules(prevModules => 
       prevModules.map(m => 
         m.name === moduleName 
-          ? { ...m, isVisible: newVisibility }
+          ? { ...m, isVisible: !currentlyVisible }
           : m
       )
     );
