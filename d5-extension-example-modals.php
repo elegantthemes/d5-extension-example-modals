@@ -75,9 +75,9 @@ function d5_extension_example_modals_init() {
  */
 function d5_extension_example_modals_add_settings( $settings ) {
 	// Load saved data from database (or empty array for first time)
-	$saved_data = get_option('d5_extension_example_modals_data', []);
+	$saved_data = get_option('divi_module_visibility_settings', []);
 	
-	$settings['d5ExtensionExampleModalsData'] = $saved_data;
+	$settings['moduleVisibilitySettings'] = $saved_data;
 
 	return $settings;
 }
@@ -89,7 +89,7 @@ function d5_extension_example_modals_add_settings( $settings ) {
  * @since 0.1.0
  */
 function d5_extension_example_modals_register_rest_routes() {
-	register_rest_route('divi/v1', '/d5-extension-data/update', [
+	register_rest_route('divi/v1', '/module-visibility-settings/update', [
 		'methods'             => 'POST',
 		'callback'            => 'd5_extension_example_modals_save_data',
 		'permission_callback' => 'd5_extension_example_modals_save_permission',
@@ -178,7 +178,7 @@ function d5_extension_example_modals_save_data($request) {
 	$data = $request->get_param('data');
 	
 	// Save to wp_options table
-	$saved = update_option('d5_extension_example_modals_data', $data);
+	$saved = update_option('divi_module_visibility_settings', $data);
 	
 	if ($saved) {
 		return new WP_REST_Response([

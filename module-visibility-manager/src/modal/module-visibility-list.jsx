@@ -18,8 +18,8 @@ const ModuleVisibilityManager = () => {
   );
 
   // Retrieve current module visibility settings from the store
-  const pluginData = useSelect(select => 
-    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
+  const moduleVisibilityData = useSelect(select => 
+    select('divi/settings')?.getSetting('moduleVisibilitySettings', []), []
   );
 
   // Get settings store dispatcher for saving data
@@ -34,7 +34,7 @@ const ModuleVisibilityManager = () => {
         visible: Boolean(item.visible)
       })) : [];
       
-      const response = await fetch('/wp-json/divi/v1/d5-extension-data/update', {
+      const response = await fetch('/wp-json/divi/v1/module-visibility-settings/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ const ModuleVisibilityManager = () => {
   // Combined update: store + database persistence
   const updateDataWithPersistence = (newData) => {
     // 1. Update store immediately (for UI reactivity)
-    add('d5ExtensionExampleModalsData', newData);
+    add('moduleVisibilitySettings', newData);
     
     // 2. Save to database (debounced)
     clearTimeout(window.d5ExtensionSaveTimeout);
@@ -67,7 +67,7 @@ const ModuleVisibilityManager = () => {
 
   // Function to toggle module visibility
   const toggleModuleVisibility = (moduleName, currentlyVisible) => {
-    const currentData = select('divi/settings').getSetting('d5ExtensionExampleModalsData', []);
+    const currentData = select('divi/settings').getSetting('moduleVisibilitySettings', []);
     
     // Find existing entry or create new one
     const existingIndex = currentData.findIndex(item => item.nodeName === moduleName);
@@ -91,7 +91,7 @@ const ModuleVisibilityManager = () => {
   // Process modules using Divi 5's built-in data - simple and straightforward
   const modules = Object.entries(allModules).map(([name, moduleConfig]) => {
     // Find visibility setting for this module
-    const visibilitySetting = pluginData.find(item => item.nodeName === name);
+    const visibilitySetting = moduleVisibilityData.find(item => item.nodeName === name);
     const isVisible = visibilitySetting ? visibilitySetting.visible : true; // Default to visible
     
     return {
@@ -166,7 +166,7 @@ const ModuleVisibilityManager = () => {
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
         • Hidden modules: {hiddenModules.length}<br />
-        • Data entries: {pluginData.length}<br />
+        • Data entries: {moduleVisibilityData.length}<br />
         • Uses Divi 5 built-in module library (simplified)<br />
         • Changes apply instantly to Insert Module dialog<br />
         • Lightweight state management without complex effects

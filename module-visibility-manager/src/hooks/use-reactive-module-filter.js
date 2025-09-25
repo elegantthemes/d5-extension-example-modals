@@ -48,7 +48,7 @@ if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
 export const useReactiveModuleFilter = () => {
   // Retrieve module visibility settings from Divi settings store
   const settingsData = useSelect(select => 
-    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
+    select('divi/settings')?.getSetting('moduleVisibilitySettings', []), []
   );
 
   // Filter settings data to get only hidden modules
