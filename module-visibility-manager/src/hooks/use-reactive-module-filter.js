@@ -4,11 +4,12 @@ import { useSelect } from '@divi/data';
 /**
  * Custom Hook for Reactive Module Filtering
  * 
- * This hook uses useSelect to watch store changes and updates the filter reactively.
- * Follows Divi 5 best practices by using focused selectors and processing data outside useSelect.
+ * Implements real-time module visibility control for the Divi 5 Visual Builder.
+ * Uses useSelect to monitor store changes and applies filtering to the Add Module dialog
+ * automatically, following Divi 5 best practices with focused selectors.
  * 
- * The hook automatically registers/unregisters the WordPress filter based on store changes,
- * ensuring that the Insert Module dialog shows only visible modules in real-time.
+ * The hook registers a WordPress filter on module load that dynamically filters
+ * the module list based on user preferences stored in the Divi settings store.
  * 
  * @since 0.1.0
  * 
@@ -17,7 +18,7 @@ import { useSelect } from '@divi/data';
 // Global state to store current hidden modules
 let currentHiddenModules = [];
 
-// Register filter once when module loads - no useEffect needed!
+// Register WordPress filter on module load to enable dynamic module filtering
 if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
   window.vendor.wp.hooks.addFilter(
     'divi.modalLibrary.addModule.moduleList',
@@ -45,17 +46,17 @@ if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
 }
 
 export const useReactiveModuleFilter = () => {
-  // Split into focused selector - only get raw data from store
+  // Retrieve module visibility settings from Divi settings store
   const settingsData = useSelect(select => 
     select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
   );
 
-  // Process data outside useSelect - simple filtering without useMemo
+  // Filter settings data to get only hidden modules
   const hiddenModules = Array.isArray(settingsData) 
     ? settingsData.filter(item => !item.visible)
     : [];
 
-  // Update global state whenever hidden modules change
+  // Update global state to provide current hidden modules to the filter
   currentHiddenModules = hiddenModules;
 
   return hiddenModules;

@@ -6,24 +6,26 @@ import { useReactiveModuleFilter } from '../hooks';
 
 /**
  * Module Visibility Manager Component
- * Component to test module discovery and visibility management
- * Now uses reactive useSelect pattern for instant filter updates
+ * 
+ * Provides a user interface for managing module visibility in the Divi 5 Visual Builder.
+ * Users can toggle individual modules on/off, and changes are applied in real-time to
+ * the Add Module dialog while being persisted to the Divi settings store.
  */
 const ModuleVisibilityManager = () => {
-  // Use Divi 5's built-in module library directly - no complex state management needed
+  // Access Divi 5's built-in module library for available modules
   const allModules = useSelect(select => 
     select('divi/module-library')?.getModules() || {}, []
   );
 
-  // Get our plugin data
+  // Retrieve current module visibility settings from the store
   const pluginData = useSelect(select => 
     select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
   );
 
-  // Get dispatch to add new data
+  // Get settings store dispatcher for saving data
   const { add } = useDispatch('divi/settings');
 
-  // Auto-save function using regular fetch with WordPress REST API
+  // Persist module visibility data to WordPress database via REST API
   const saveToDatabase = async (data) => {
     try {
       // Convert immutable data to plain JavaScript array
