@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSelect, useDispatch, select } from '@divi/data';
 
 import { useReactiveModuleFilter } from '../hooks';
@@ -10,11 +10,12 @@ import { useReactiveModuleFilter } from '../hooks';
  * Now uses reactive useSelect pattern for instant filter updates
  */
 const ModuleVisibilityManager = () => {
-  const [modules, setModules] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Use Divi 5's built-in module library directly - no complex state management needed
+  const allModules = useSelect(select => 
+    select('divi/module-library')?.getModules() || {}, []
+  );
 
-  // Split into focused selector - only get raw data from store
+  // Get our plugin data
   const pluginData = useSelect(select => 
     select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
   );
@@ -40,12 +41,12 @@ const ModuleVisibilityManager = () => {
         body: JSON.stringify({ data: plainData })
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        if (result && result.success) {
-          console.log('✅ Data saved to database');
-        }
-      }
+      // if (response.ok) {
+      //   const result = await response.json();
+      //   if (result && result.success) {
+      //     console.log('✅ Data saved to database');
+      //   }
+      // }
     } catch (error) {
       console.error('❌ Save failed:', error);
     }
@@ -61,18 +62,6 @@ const ModuleVisibilityManager = () => {
     window.d5ExtensionSaveTimeout = setTimeout(() => saveToDatabase(newData), 1000);
   };
 
-  // Function to clean up old dummy data (one-time cleanup)
-  const cleanupDummyData = () => {
-    const currentData = select('divi/settings').getSetting('d5ExtensionExampleModalsData', []);
-    
-    // Filter out dummy entries (those starting with 'module_')
-    const cleanedData = currentData.filter(item => !item.nodeName.startsWith('module_'));
-    
-    if (cleanedData.length !== currentData.length) {
-      console.log(`🧹 Cleaning up ${currentData.length - cleanedData.length} dummy entries`);
-      updateDataWithPersistence(cleanedData);
-    }
-  };
 
   // Function to toggle module visibility
   const toggleModuleVisibility = (moduleName, currentlyVisible) => {
@@ -97,138 +86,29 @@ const ModuleVisibilityManager = () => {
   // Use our custom reactive hook - this automatically handles filter updates!
   const hiddenModules = useReactiveModuleFilter();
 
-  // Get module visibility data from divi/settings - focused selector
-  const rawModuleVisibilityData = useSelect(select => 
-    select('divi/settings')?.getSetting('d5ExtensionExampleModalsData', []), []
-  );
-
-  // Process data outside useSelect - simple array check without useMemo
-  const moduleVisibilityData = Array.isArray(rawModuleVisibilityData) ? rawModuleVisibilityData : [];
-
-  // Clean up dummy data once on mount
-  useEffect(() => {
-    cleanupDummyData();
-  }, []);
-
-  // Discover modules once on mount
-  useEffect(() => {
-    const discoverModules = () => {
-      // Clear any previous errors
-      setError(null);
-      
-      // Check for essential dependencies first
-      if (!select) {
-        setError('Divi data select function not available');
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        const moduleLibraryStore = select('divi/module-library');
-        
-        if (!moduleLibraryStore) {
-          setError('Module library store not available');
-          setIsLoading(false);
-          return;
-        }
-        
-        if (!moduleLibraryStore.getModules || typeof moduleLibraryStore.getModules !== 'function') {
-          setError('Module library getModules method not available');
-          setIsLoading(false);
-          return;
-        }
-        
-        const allModules = moduleLibraryStore.getModules();
-            
-            // Transform modules to our format
-            const moduleList = Object.entries(allModules || {}).map(([name, config]) => {
-              let title = name;
-              let category = 'unknown';
-              
-              // Use if-else for anticipated checks instead of expensive try-catch
-              if (moduleLibraryStore.getModuleTitle && typeof moduleLibraryStore.getModuleTitle === 'function') {
-                const moduleTitle = moduleLibraryStore.getModuleTitle(name);
-                if (moduleTitle && typeof moduleTitle === 'string') {
-                  title = moduleTitle;
-                }
-              }
-              
-              if (moduleLibraryStore.getModuleCategory && typeof moduleLibraryStore.getModuleCategory === 'function') {
-                const moduleCategory = moduleLibraryStore.getModuleCategory(name);
-                if (moduleCategory && typeof moduleCategory === 'string') {
-                  category = moduleCategory;
-                }
-              }
-              
-              return {
-                name,
-                title,
-                category,
-                isVisible: true, // Default all to visible
-              };
-            });
-
-            setModules(moduleList);
-            setIsLoading(false);
-      } catch (err) {
-        // Handle unexpected errors only (store access issues, etc.)
-        const errorMessage = err?.message || 'Unexpected error occurred while discovering modules';
-        setError(errorMessage);
-        setIsLoading(false);
-      }
-    };
-
-    discoverModules();
-  }, []); // Only run once on mount
-
-  // Update visibility based on moduleVisibilityData (separate effect)
-  useEffect(() => {
-    // Create a map for faster lookup
-    const visibilityMap = new Map();
-    moduleVisibilityData.forEach(item => {
-      visibilityMap.set(item.nodeName, item.visible);
-    });
+  // Process modules using Divi 5's built-in data - simple and straightforward
+  const modules = Object.entries(allModules).map(([name, moduleConfig]) => {
+    // Find visibility setting for this module
+    const visibilitySetting = pluginData.find(item => item.nodeName === name);
+    const isVisible = visibilitySetting ? visibilitySetting.visible : true; // Default to visible
     
-    setModules(prevModules => 
-      prevModules.map(module => ({
-        ...module,
-        isVisible: visibilityMap.has(module.name) ? visibilityMap.get(module.name) : true // Default to visible
-      }))
-    );
-  }, [moduleVisibilityData]); // Update visibility when moduleVisibilityData changes
+    return {
+      name,
+      title: moduleConfig?.title || name.replace('divi/', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      isVisible
+    };
+  });
+
 
   const handleToggle = (moduleName) => {
     const module = modules.find(m => m.name === moduleName);
     const currentlyVisible = module?.isVisible ?? true; // Default to visible if not found
     
-    // Toggle module visibility using the new divi/settings integration
+    // Toggle module visibility using the simplified approach
     toggleModuleVisibility(moduleName, currentlyVisible);
-    
-    // Update local state immediately for better UX
-    setModules(prevModules => 
-      prevModules.map(m => 
-        m.name === moduleName 
-          ? { ...m, isVisible: !currentlyVisible }
-          : m
-      )
-    );
   };
 
-  if (isLoading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '20px' }}>
-        <div>Loading modules...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ textAlign: 'center', color: 'red', padding: '20px' }}>
-        <div>Error loading modules: {error}</div>
-      </div>
-    );
-  }
+  // No loading/error states needed - Divi 5 handles this for us
 
   return (
     <div>
@@ -251,7 +131,7 @@ const ModuleVisibilityManager = () => {
               <div>
                 <strong>{module.title}</strong>
                 <div style={{ fontSize: '12px', color: '#666' }}>
-                  {module.name} • {module.category}
+                  {module.name}
                 </div>
               </div>
               <label style={{ 
@@ -284,10 +164,10 @@ const ModuleVisibilityManager = () => {
         <strong>Module Visibility Manager</strong><br />
         • Total modules: {modules.length}<br />
         • Hidden modules: {hiddenModules.length}<br />
-        • Data entries: {moduleVisibilityData.length}<br />
+        • Data entries: {pluginData.length}<br />
+        • Uses Divi 5 built-in module library (simplified)<br />
         • Changes apply instantly to Insert Module dialog<br />
-        • Uses Divi 5 settings store with database persistence<br />
-        • Filter automatically re-registers when data changes
+        • Lightweight state management without complex effects
       </div>
       
       {/* Store Debug Info */}

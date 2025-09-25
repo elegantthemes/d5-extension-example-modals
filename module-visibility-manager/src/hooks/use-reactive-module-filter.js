@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React from 'react';
 import { useSelect } from '@divi/data';
 
 /**
@@ -14,6 +14,36 @@ import { useSelect } from '@divi/data';
  * 
  * @returns {Array} Array of hidden module objects from the store
  */
+// Global state to store current hidden modules
+let currentHiddenModules = [];
+
+// Register filter once when module loads - no useEffect needed!
+if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
+  window.vendor.wp.hooks.addFilter(
+    'divi.modalLibrary.addModule.moduleList',
+    'moduleVisibilityManager',
+    (moduleFolderList, moduleParams) => {
+      const filteredList = { ...moduleFolderList };
+      let hiddenCount = 0;
+      
+      // Remove hidden modules from picker list
+      currentHiddenModules.forEach(hiddenItem => {
+        if (hiddenItem.nodeName && filteredList[hiddenItem.nodeName]) {
+          delete filteredList[hiddenItem.nodeName];
+          hiddenCount++;
+        }
+      });
+      
+      if (hiddenCount > 0) {
+        console.log(`📊 Module Visibility Manager: ${hiddenCount} modules hidden from Add Module dialog`);
+      }
+      
+      return filteredList;
+    },
+    10
+  );
+}
+
 export const useReactiveModuleFilter = () => {
   // Split into focused selector - only get raw data from store
   const settingsData = useSelect(select => 
@@ -24,47 +54,9 @@ export const useReactiveModuleFilter = () => {
   const hiddenModules = Array.isArray(settingsData) 
     ? settingsData.filter(item => !item.visible)
     : [];
-  
 
-  // Initialize the filter when component mounts and update when store changes
-  useEffect(() => {
-    
-    if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
-      
-      // Add the reactive filter (removeFilter is handled in cleanup)
-      window.vendor.wp.hooks.addFilter(
-        'divi.modalLibrary.addModule.moduleList',
-        'moduleVisibilityManager',
-        (moduleFolderList, moduleParams) => {
-          
-          // Create filtered list based on current store data
-          const filteredList = { ...moduleFolderList };
-          
-          // Remove hidden modules from picker list
-          hiddenModules.forEach(hiddenItem => {
-            if (hiddenItem.name && filteredList[hiddenItem.name]) {
-              delete filteredList[hiddenItem.name];
-            }
-          });
-          
-          return filteredList;
-        },
-        10 // Priority
-      );
-      
-    } else {
-    }
-
-    // Cleanup function to remove filter when component unmounts
-    return () => {
-      if (window.vendor?.wp?.hooks?.removeFilter) {
-        window.vendor.wp.hooks.removeFilter(
-          'divi.modalLibrary.addModule.moduleList',
-          'moduleVisibilityManager'
-        );
-      }
-    };
-  }, [hiddenModules]); // Re-register filter when hiddenModules changes!
+  // Update global state whenever hidden modules change
+  currentHiddenModules = hiddenModules;
 
   return hiddenModules;
 };
