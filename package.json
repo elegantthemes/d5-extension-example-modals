@@ -4,6 +4,9 @@
   "description": "Divi 5 Extension Example - Custom Modals Plugin",
   "main": "d5-extension-example-modals.php",
   "scripts": {
+    "start": "cd module-visibility-manager && npm run start",
+    "build": "cd module-visibility-manager && npm run build",
+    "build:dev": "cd module-visibility-manager && npm run build:dev",
     "zip": "gulp zip"
   },
   "keywords": [
