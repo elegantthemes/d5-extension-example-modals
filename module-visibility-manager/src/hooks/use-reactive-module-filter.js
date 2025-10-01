@@ -35,9 +35,6 @@ addFilter(
       }
     });
     
-    if (hiddenCount > 0) {
-      console.log(`📊 Module Visibility Manager: ${hiddenCount} modules hidden from Add Module dialog`);
-    }
     
     return filteredList;
   },
