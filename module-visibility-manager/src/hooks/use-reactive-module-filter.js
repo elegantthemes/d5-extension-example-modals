@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelect } from '@divi/data';
+import { addFilter } from '@wordpress/hooks';
 
 /**
  * Custom Hook for Reactive Module Filtering
@@ -19,31 +20,29 @@ import { useSelect } from '@divi/data';
 let currentHiddenModules = [];
 
 // Register WordPress filter on module load to enable dynamic module filtering
-if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
-  window.vendor.wp.hooks.addFilter(
-    'divi.modalLibrary.addModule.moduleList',
-    'moduleVisibilityManager',
-    (moduleFolderList, moduleParams) => {
-      const filteredList = { ...moduleFolderList };
-      let hiddenCount = 0;
-      
-      // Remove hidden modules from picker list
-      currentHiddenModules.forEach(hiddenItem => {
-        if (hiddenItem.nodeName && filteredList[hiddenItem.nodeName]) {
-          delete filteredList[hiddenItem.nodeName];
-          hiddenCount++;
-        }
-      });
-      
-      if (hiddenCount > 0) {
-        console.log(`📊 Module Visibility Manager: ${hiddenCount} modules hidden from Add Module dialog`);
+addFilter(
+  'divi.modalLibrary.addModule.moduleList',
+  'moduleVisibilityManager',
+  (moduleFolderList, moduleParams) => {
+    const filteredList = { ...moduleFolderList };
+    let hiddenCount = 0;
+    
+    // Remove hidden modules from picker list
+    currentHiddenModules.forEach(hiddenItem => {
+      if (hiddenItem.nodeName && filteredList[hiddenItem.nodeName]) {
+        delete filteredList[hiddenItem.nodeName];
+        hiddenCount++;
       }
-      
-      return filteredList;
-    },
-    10
-  );
-}
+    });
+    
+    if (hiddenCount > 0) {
+      console.log(`📊 Module Visibility Manager: ${hiddenCount} modules hidden from Add Module dialog`);
+    }
+    
+    return filteredList;
+  },
+  10
+);
 
 export const useReactiveModuleFilter = () => {
   // Retrieve module visibility settings from Divi settings store
