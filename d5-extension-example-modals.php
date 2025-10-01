@@ -1,20 +1,21 @@
 <?php
-/*
-Plugin Name: D5 Extension Example: Modals
-Plugin URI:  https://github.com/elegantthemes/d5-extension-example-modals
-Description: Collection of example custom modals for Divi 5 demonstrating different modal implementation patterns and functionality.
-Version:     0.1.0
-Author:      Elegant Themes
-Author URI:  https://elegantthemes.com
-License:     GPL2
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Text Domain: d5-extension-example-modals
-Domain Path: /languages
-Requires at least: 5.0
-Tested up to: 6.4
-Requires PHP: 7.4
-Network: false
-*/
+/**
+ * Plugin Name: D5 Extension Example: Modals
+ * Plugin URI:  https://github.com/elegantthemes/d5-extension-example-modals
+ * Description: Collection of example custom modals for Divi 5 demonstrating different modal implementation patterns and functionality.
+ * Version:     0.1.0
+ * Author:      Elegant Themes
+ * Author URI:  https://elegantthemes.com
+ * License:     GPL2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: d5-extension-example-modals
+ * Domain Path: /languages
+ * Requires at least: 5.0
+ * Tested up to: 6.4
+ * Requires PHP: 7.4
+ * Network: false
+ *
+ */
 
 // Prevent direct access.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -57,12 +58,12 @@ function d5_extension_example_modals_check_requirements() {
 function d5_extension_example_modals_init() {
 	// Load example modules.
 	d5_extension_example_modals_load_examples();
-	
+
 	// Register settings data for Divi Visual Builder.
 	add_filter( 'divi_visual_builder_settings_data', 'd5_extension_example_modals_add_settings' );
-	
+
 	// Register REST endpoint for saving data.
-	add_action('rest_api_init', 'd5_extension_example_modals_register_rest_routes');
+	add_action( 'rest_api_init', 'd5_extension_example_modals_register_rest_routes' );
 }
 
 /**
@@ -74,9 +75,9 @@ function d5_extension_example_modals_init() {
  * @return array Modified settings data.
  */
 function d5_extension_example_modals_add_settings( $settings ) {
-	// Load saved data from database (or empty array for first time)
-	$saved_data = get_option('divi_module_visibility_settings', []);
-	
+	// Load saved data from database (or empty array for first time).
+	$saved_data = get_option( 'divi_module_visibility_settings', array() );
+
 	$settings['moduleVisibilitySettings'] = $saved_data;
 
 	return $settings;
@@ -89,18 +90,22 @@ function d5_extension_example_modals_add_settings( $settings ) {
  * @since 0.1.0
  */
 function d5_extension_example_modals_register_rest_routes() {
-	register_rest_route('divi/v1', '/module-visibility-settings/update', [
-		'methods'             => 'POST',
-		'callback'            => 'd5_extension_example_modals_save_data',
-		'permission_callback' => 'd5_extension_example_modals_save_permission',
-		'args'                => [
-			'data' => [
-				'required'          => true,
-				'validate_callback' => 'd5_extension_example_modals_validate_data',
-				'sanitize_callback' => 'd5_extension_example_modals_sanitize_data',
-			],
-		],
-	]);
+	register_rest_route(
+		'divi/v1',
+		'/module-visibility-settings/update',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'd5_extension_example_modals_save_data',
+			'permission_callback' => 'd5_extension_example_modals_save_permission',
+			'args'                => array(
+				'data' => array(
+					'required'          => true,
+					'validate_callback' => 'd5_extension_example_modals_validate_data',
+					'sanitize_callback' => 'd5_extension_example_modals_sanitize_data',
+				),
+			),
+		)
+	);
 }
 
 /**
@@ -111,7 +116,7 @@ function d5_extension_example_modals_register_rest_routes() {
  * @return bool Whether the user can save data.
  */
 function d5_extension_example_modals_save_permission() {
-	return current_user_can('edit_posts');
+	return current_user_can( 'edit_posts' );
 }
 
 /**
@@ -122,26 +127,26 @@ function d5_extension_example_modals_save_permission() {
  * @param mixed $data The data to validate.
  * @return bool Whether the data is valid.
  */
-function d5_extension_example_modals_validate_data($data) {
-	if (!is_array($data)) {
+function d5_extension_example_modals_validate_data( $data ) {
+	if ( ! is_array( $data ) ) {
 		return false;
 	}
-	
-	// Allow empty arrays
-	if (empty($data)) {
+
+	// Allow empty arrays.
+	if ( empty( $data ) ) {
 		return true;
 	}
-	
-	// Validate each item has required structure
-	foreach ($data as $item) {
-		if (!isset($item['nodeName']) || !isset($item['visible'])) {
+
+	// Validate each item has required structure.
+	foreach ( $data as $item ) {
+		if ( ! isset( $item['nodeName'] ) || ! isset( $item['visible'] ) ) {
 			return false;
 		}
-		if (!is_string($item['nodeName']) || !is_bool($item['visible'])) {
+		if ( ! is_string( $item['nodeName'] ) || ! is_bool( $item['visible'] ) ) {
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -153,16 +158,16 @@ function d5_extension_example_modals_validate_data($data) {
  * @param mixed $data The data to sanitize.
  * @return array Sanitized data.
  */
-function d5_extension_example_modals_sanitize_data($data) {
-	$sanitized = [];
-	
-	foreach ($data as $item) {
-		$sanitized[] = [
-			'nodeName' => sanitize_text_field($item['nodeName']),
+function d5_extension_example_modals_sanitize_data( $data ) {
+	$sanitized = array();
+
+	foreach ( $data as $item ) {
+		$sanitized[] = array(
+			'nodeName' => sanitize_text_field( $item['nodeName'] ),
 			'visible'  => (bool) $item['visible'],
-		];
+		);
 	}
-	
+
 	return $sanitized;
 }
 
@@ -174,23 +179,26 @@ function d5_extension_example_modals_sanitize_data($data) {
  * @param WP_REST_Request $request The REST request.
  * @return WP_REST_Response|WP_Error The response.
  */
-function d5_extension_example_modals_save_data($request) {
-	$data = $request->get_param('data');
-	
-	// Save to wp_options table
-	$saved = update_option('divi_module_visibility_settings', $data);
-	
-	if ($saved) {
-		return new WP_REST_Response([
-			'success' => true,
-			'message' => 'Data saved successfully',
-			'data'    => $data,
-		], 200);
+function d5_extension_example_modals_save_data( $request ) {
+	$data = $request->get_param( 'data' );
+
+	// Save to wp_options table.
+	$saved = update_option( 'divi_module_visibility_settings', $data );
+
+	if ( $saved ) {
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => 'Data saved successfully',
+				'data'    => $data,
+			),
+			200
+		);
 	} else {
 		return new WP_Error(
 			'save_failed',
 			'Failed to save data',
-			['status' => 500]
+			array( 'status' => 500 )
 		);
 	}
 }
@@ -212,8 +220,8 @@ function d5_extension_example_modals_load_examples() {
 	// Future examples can be loaded here.
 	// $future_example_file = $examples_dir . 'future-example/example.php';
 	// if ( file_exists( $future_example_file ) ) {
-	//     require_once $future_example_file;
-	// }
+	// require_once $future_example_file;
+	// }.
 }
 
 /**
