@@ -9,13 +9,18 @@ function zipTask() {
     return gulp.src([
         '**/*',
         '!node_modules/**',
+        '!**/node_modules/**',
         '!src/**',
+        '!**/src/**',
         '!.git/**',
         '!.gitignore',
         '!gulpfile.js',
         '!package.json',
+        '!**/package.json',
         '!package-lock.json',
+        '!**/package-lock.json',
         '!yarn.lock',
+        '!**/yarn.lock',
         '!*.zip',
         '!.DS_Store',
         '!Thumbs.db',
@@ -31,7 +36,7 @@ function zipTask() {
         '!.eslintrc*',
         '!.prettierrc*',
         '!webpack.config.js',
-        '!rollup.config.js'
+        '!**/webpack.config.js'
     ], {
         base: '.',
         dot: false
