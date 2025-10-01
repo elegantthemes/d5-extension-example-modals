@@ -1,0 +1,21 @@
+{
+  "name": "d5-extension-example-modals",
+  "version": "1.0.0",
+  "description": "Divi 5 Extension Example - Custom Modals Plugin",
+  "main": "d5-extension-example-modals.php",
+  "scripts": {
+    "zip": "gulp zip"
+  },
+  "keywords": [
+    "divi",
+    "wordpress",
+    "plugin",
+    "modals"
+  ],
+  "author": "Elegant Themes",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-zip": "^5.1.0"
+  }
+}
