@@ -1,77 +1,59 @@
-import { useEffect } from 'react';
+import React from 'react';
 import { useSelect } from '@divi/data';
+import { addFilter } from '@wordpress/hooks';
 
 /**
  * Custom Hook for Reactive Module Filtering
  * 
- * This hook uses useSelect to watch store changes and updates the filter reactively.
- * Similar pattern to use-process-dynamic-content-title.ts in Divi core.
+ * Implements real-time module visibility control for the Divi 5 Visual Builder.
+ * Uses useSelect to monitor store changes and applies filtering to the Add Module dialog
+ * automatically, following Divi 5 best practices with focused selectors.
  * 
- * The hook automatically registers/unregisters the WordPress filter based on store changes,
- * ensuring that the Insert Module dialog shows only visible modules in real-time.
+ * The hook registers a WordPress filter on module load that dynamically filters
+ * the module list based on user preferences stored in the Divi settings store.
  * 
  * @since 0.1.0
  * 
  * @returns {Array} Array of hidden module objects from the store
  */
-export const useReactiveModuleFilter = () => {
-  // Watch the custom store reactively using useSelect
-  const hiddenModules = useSelect(select => {
-    const customStore = select('divi/custom-test');
-    const items = customStore?.getItems() || [];
-    console.log('🔍 HOOK: useSelect - Store items:', items);
-    return items;
-  }, []); // No dependencies - always reactive to store changes
-  
-  console.log('🔍 HOOK: Rendered with hiddenModules:', hiddenModules);
+// Global state to store current hidden modules
+let currentHiddenModules = [];
 
-  // Initialize the filter when component mounts and update when store changes
-  useEffect(() => {
-    console.log('🔍 HOOK: useEffect triggered with hiddenModules:', hiddenModules);
+// Register WordPress filter on module load to enable dynamic module filtering
+addFilter(
+  'divi.modalLibrary.addModule.moduleList',
+  'moduleVisibilityManager',
+  (moduleFolderList, moduleParams) => {
+    const filteredList = { ...moduleFolderList };
+    let hiddenCount = 0;
     
-    if (typeof window !== 'undefined' && window.vendor?.wp?.hooks) {
-      console.log('🔍 HOOK: WordPress hooks available, registering filter');
-      
-      // Add the reactive filter (removeFilter is handled in cleanup)
-      window.vendor.wp.hooks.addFilter(
-        'divi.modalLibrary.addModule.moduleList',
-        'moduleVisibilityManager',
-        (moduleFolderList, moduleParams) => {
-          console.log('🔍 FILTER: Called with', Object.keys(moduleFolderList).length, 'modules');
-          console.log('🔍 FILTER: Hidden modules:', hiddenModules);
-          
-          // Create filtered list based on current store data
-          const filteredList = { ...moduleFolderList };
-          
-          // Remove hidden modules from picker list
-          hiddenModules.forEach(hiddenItem => {
-            if (hiddenItem.name && filteredList[hiddenItem.name]) {
-              delete filteredList[hiddenItem.name];
-              console.log('🔍 FILTER: Removed module:', hiddenItem.name);
-            }
-          });
-          
-          console.log('🔍 FILTER: Returning', Object.keys(filteredList).length, 'modules');
-          return filteredList;
-        },
-        10 // Priority
-      );
-      
-      console.log('🔍 HOOK: Filter registered successfully');
-    } else {
-      console.log('🔍 HOOK: WordPress hooks not available');
-    }
-
-    // Cleanup function to remove filter when component unmounts
-    return () => {
-      if (window.vendor?.wp?.hooks?.removeFilter) {
-        window.vendor.wp.hooks.removeFilter(
-          'divi.modalLibrary.addModule.moduleList',
-          'moduleVisibilityManager'
-        );
+    // Remove hidden modules from picker list
+    currentHiddenModules.forEach(hiddenItem => {
+      if (hiddenItem.nodeName && filteredList[hiddenItem.nodeName]) {
+        delete filteredList[hiddenItem.nodeName];
+        hiddenCount++;
       }
-    };
-  }, [hiddenModules]); // Re-register filter when hiddenModules changes!
+    });
+    
+    
+    return filteredList;
+  },
+  10
+);
+
+export const useReactiveModuleFilter = () => {
+  // Retrieve module visibility settings from Divi settings store
+  const settingsData = useSelect(select => 
+    select('divi/settings')?.getSetting('moduleVisibilitySettings', []), []
+  );
+
+  // Filter settings data to get only hidden modules
+  const hiddenModules = Array.isArray(settingsData) 
+    ? settingsData.filter(item => !item.visible)
+    : [];
+
+  // Update global state to provide current hidden modules to the filter
+  currentHiddenModules = hiddenModules;
 
   return hiddenModules;
 };
