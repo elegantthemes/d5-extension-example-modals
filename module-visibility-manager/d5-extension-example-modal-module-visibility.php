@@ -23,44 +23,44 @@ function d5_module_visibility_enqueue_assets() {
 	if ( et_core_is_fb_enabled() && et_builder_d5_enabled() ) {
 
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
-			[
+			array(
 				'name'    => 'd5-module-visibility-builder-bar-button',
 				'version' => '1.0.0',
-				'script'  => [
+				'script'  => array(
 					'src'                => D5_MODULE_VISIBILITY_URL . 'build/add-bar-builder-buttons.js',
-					'deps'               => [
+					'deps'               => array(
 						'divi-app-ui',
 						'divi-data',
-					],
+					),
 					'enqueue_top_window' => false,
 					'enqueue_app_window' => true,
-					'args'               => [
+					'args'               => array(
 						'in_footer' => true,
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
-			[
+			array(
 				'name'    => 'd5-module-visibility-bundle',
 				'version' => '1.0.0',
-				'script'  => [
+				'script'  => array(
 					'src'                => D5_MODULE_VISIBILITY_URL . 'build/bundle.js',
-					'deps'               => [
+					'deps'               => array(
 						'lodash',
 						'divi-vendor-wp-hooks',
 						'divi-modal',
 						'divi-data',
 						'divi-module-library',
-					],
+					),
 					'enqueue_top_window' => false,
 					'enqueue_app_window' => true,
-					'args'               => [
+					'args'               => array(
 						'in_footer' => false,
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 }
