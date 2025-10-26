@@ -36,10 +36,9 @@ An **educational tutorial repository** that teaches developers how to create cus
 ### Tutorial Setup
 
 1. **Clone this educational repository** to your local WordPress development environment
-2. **Navigate** to `module-visibility-manager/` subdirectory to see the complete example
-3. **Install dependencies**: `yarn install`
-4. **Build the tutorial example**: `yarn build`
-5. **Activate** in WordPress Admin → Plugins to see it in action
+2. **Install dependencies**: `npm install` (in module-visibility-manager/)
+3. **Build the tutorial example**: `npm run build`
+4. **Activate** in WordPress Admin → Plugins to see it in action
 
 ### Explore the Working Example
 
@@ -173,13 +172,72 @@ addFilter('divi.modalLibrary.addModule.moduleList', 'my-plugin',
 
 ### Build Process
 
+All build commands are now available from the root directory for better plugin architecture and scalability:
+
 ```bash
 # Development
-yarn start
+npm run start
 
 # Production build
-yarn build
+npm run build
+
+# Development build
+npm run build:dev
+
+# Create distribution package
+npm run zip
 ```
+
+**Note**: The build commands delegate to the `module-visibility-manager/` subdirectory internally, but can be run from the root level for convenience.
+
+#### Future Architecture Recommendation
+
+For better scalability when adding more modals, consider this structure:
+
+```
+d5-extension-example-modals/
+├── package.json (with all build commands)
+├── webpack.config.js (root-level build config)
+├── src/
+│   ├── module-visibility-manager/
+│   │   ├── component.jsx
+│   │   └── ...
+│   └── future-modal/
+│       ├── component.jsx
+│       └── ...
+└── build/
+    ├── module-visibility-manager/
+    └── future-modal/
+```
+
+This would allow:
+- Single `npm run start` and `npm run build` commands from root
+- Centralized build configuration
+- Easier addition of new modals
+- Consistent development workflow
+
+#### Create Distribution Package
+
+To create a distribution-ready zip file of the plugin:
+
+```bash
+npm run zip
+```
+
+This command will:
+- Create a `d5-extension-example-modals.zip` file
+- Exclude development files (`node_modules/`, `src/`, `.git/`, etc.)
+- Include only production-ready plugin files
+- Ready for distribution or installation
+
+#### File Exclusions
+
+The zip command automatically excludes:
+- Development dependencies (`node_modules/`)
+- Source files (`src/`)
+- Git files (`.git/`, `.gitignore`)
+- Build configuration files (`gulpfile.js`, `package.json`, etc.)
+- IDE and system files (`.vscode/`, `.DS_Store`, etc.)
 
 ## 🐛 **Troubleshooting**
 
