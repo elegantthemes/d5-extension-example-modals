@@ -73,6 +73,12 @@ function d5_extension_example_modals_load_examples() {
 		require_once $module_visibility_file;
 	}
 
+	// Load Post Keyword Manager example.
+	$post_keyword_file = $examples_dir . 'post-keyword-manager/d5-extension-example-modal-post-keyword.php';
+	if ( file_exists( $post_keyword_file ) ) {
+		require_once $post_keyword_file;
+	}
+
 	// Future examples can be loaded here.
 	// $future_example_file = $examples_dir . 'future-example/example.php';
 	// if ( file_exists( $future_example_file ) ) {
