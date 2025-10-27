@@ -1,7 +1,7 @@
 import { addFilter, addAction } from '@wordpress/hooks';
 import { PostKeywordManagerModal } from './modal/component';
 import './icons/registerIcons';
-import { dispatch } from '@divi/data';
+import { dispatch, select } from '@divi/data';
 
 /**
  * Register the Post Keyword Manager modal with Divi 5.
@@ -56,12 +56,36 @@ addFilter('divi.modalLibrary.modalMapping', 'postKeywordManager', modals => {
  * @since 0.1.0
  */
 addAction('et.builder.content.change', 'postKeywordManager', (renderedContent, postData) => {
-  // Hook is registered for educational purposes to demonstrate how third-party
-  // plugins can listen to content changes. The focus keyword is now managed
-  // through the Divi settings store and persisted via REST API.
+  // Get our focus keyword from Divi settings
+  const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
+  const focusKeyword = keywordData?.focusKeyword || '';
 
-  // For educational purposes, log that the hook fired.
-  // Remove this in production code.
-  console.log('📋 HOOK: et.builder.content.change fired for Post Keyword Manager');
+  // Perform keyword density analysis
+  if (focusKeyword && renderedContent) {
+    const textContent = renderedContent.replace(/<[^>]*>/g, '').toLowerCase();
+    const keywordLower = focusKeyword.toLowerCase();
+    const matches = textContent.match(new RegExp(keywordLower, 'g'));
+    const keywordCount = matches ? matches.length : 0;
+    const wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+    const keywordDensity = wordCount > 0 ? (keywordCount / wordCount) * 100 : 0;
+
+    // Log keyword density analysis results for demonstration
+    console.log('Post Keyword Manager - Keyword Density Analysis:', {
+      focusKeyword,
+      keywordCount,
+      totalWords: wordCount,
+      densityPercentage: keywordDensity.toFixed(2) + '%',
+      postId: postData.postId,
+    });
+
+    // Provide SEO feedback based on density
+    if (keywordDensity < 0.5) {
+      console.warn(`SEO Warning: Low keyword density (${keywordDensity.toFixed(2)}%) for "${focusKeyword}". Consider adding more instances.`);
+    } else if (keywordDensity > 3.0) {
+      console.warn(`SEO Warning: High keyword density (${keywordDensity.toFixed(2)}%) for "${focusKeyword}". Possible keyword stuffing.`);
+    } else {
+      console.log(`SEO OK: Good keyword density (${keywordDensity.toFixed(2)}%) for "${focusKeyword}".`);
+    }
+  }
 });
 

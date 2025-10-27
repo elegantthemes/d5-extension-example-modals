@@ -45,7 +45,7 @@ const ModuleVisibilityManager = () => {
       });
 
     } catch (error) {
-      console.error('❌ Save failed:', error);
+      console.error('Module Visibility Manager - Save failed:', error);
     }
   };
 

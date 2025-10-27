@@ -75,10 +75,10 @@ export const usePostKeywordManager = () => {
       });
 
       if (!response.ok) {
-        console.error('❌ Save failed:', response.statusText);
+        console.error('Post Keyword Manager - Save failed:', response.statusText);
       }
     } catch (error) {
-      console.error('❌ Save failed:', error);
+      console.error('Post Keyword Manager - Save failed:', error);
     }
   };
 

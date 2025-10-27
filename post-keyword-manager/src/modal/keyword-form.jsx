@@ -75,6 +75,9 @@ export const KeywordForm = () => {
         <p style={{ fontSize: '12px', color: '#666', margin: '8px 0' }}>
           {__('💡 Focus keyword is saved automatically to WordPress database as you type.', 'et_builder')}
         </p>
+        <p style={{ fontSize: '12px', color: '#666', margin: '8px 0' }}>
+          {__('🔍 Keyword density analysis runs automatically when you save. Check browser console for results.', 'et_builder')}
+        </p>
       </div>
       
       {/* Focus Keyword Section */}
@@ -124,13 +127,14 @@ export const KeywordForm = () => {
             }}>
               et.builder.content.change
             </code>
-            {__(' hook demonstrates content change listening', 'et_builder')}
+            {__(' hook provides access to rendered content', 'et_builder')}
           </li>
-          <li>{__('This hook fires after save operations (draft, publish, preview)', 'et_builder')}</li>
-          <li>{__('Third-party plugins can use this hook to analyze content changes', 'et_builder')}</li>
-          <li>{__('Your focus keyword is saved to WordPress database via REST API with debouncing', 'et_builder')}</li>
-          <li>{__('Data persistence follows the same pattern as Module Visibility Manager', 'et_builder')}</li>
-          <li>{__('Check the browser console to see detailed logging of hook events', 'et_builder')}</li>
+          <li>{__('Plugin performs keyword density analysis when content is saved', 'et_builder')}</li>
+          <li>{__('Analysis results and SEO feedback logged to browser console', 'et_builder')}</li>
+          <li>{__('Demonstrates how plugins can analyze content via hooks', 'et_builder')}</li>
+          <li>{__('All processing happens within the plugin (no core changes)', 'et_builder')}</li>
+          <li>{__('Third-party plugins can implement similar analysis features', 'et_builder')}</li>
+          <li>{__('Check browser console for keyword density analysis results', 'et_builder')}</li>
         </ul>
       </div>
       
