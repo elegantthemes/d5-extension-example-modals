@@ -5,5 +5,5 @@
  *
  * @since 0.1.0
  */
-export { useKeywordData } from './use-keyword-data';
+export { useKeywordData, usePostKeywordManager } from './use-keyword-data';
 

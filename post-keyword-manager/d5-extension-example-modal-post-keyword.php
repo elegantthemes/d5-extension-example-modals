@@ -90,10 +90,9 @@ add_action( 'divi_visual_builder_assets_before_enqueue_scripts', 'd5_post_keywor
  * to WordPress post meta. The keyword is stored in a custom meta field
  * that can be retrieved later for SEO analysis or other purposes.
  *
- * Note: In this minimal example, the keyword is saved via the JavaScript
- * store's effects pattern (localStorage/app preferences). For a production
- * plugin, you would typically send the keyword via a custom REST endpoint
- * or include it in the sync-to-server request.
+ * The keyword is saved via the JavaScript hook's debounced REST API pattern
+ * to the WordPress options table, following the same pattern as the Module
+ * Visibility Manager. This provides persistent storage without using localStorage.
  *
  * This hook fires after the post content is successfully saved to the database.
  *
@@ -102,29 +101,9 @@ add_action( 'divi_visual_builder_assets_before_enqueue_scripts', 'd5_post_keywor
  * @param int $post_id The ID of the post being saved.
  */
 function d5_post_keyword_save_meta( $post_id ) {
-	// Educational note: In a production plugin, you would:
-	// 1. Add proper nonce verification for security
-	// 2. Check user capabilities (can_edit_post)
-	// 3. Validate and sanitize the keyword input
-	// 4. Send keyword from JavaScript via REST API or custom endpoint
-	//
-	// For this minimal example, we demonstrate the hook integration pattern.
-	// The actual keyword persistence is handled via JavaScript localStorage
-	// and app preferences in the custom-store.js file.
-
-	// Example of how you would save if keyword was sent via request:
-	// phpcs:disable Squiz.PHP.CommentedOutCode.Found
-	/*
-	if ( isset( $_POST['_d5_example_focus_keyword_nonce'] ) &&
-		wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_d5_example_focus_keyword_nonce'] ) ), 'd5_example_keyword_save' ) ) {
-		
-		if ( isset( $_POST['focus_keyword'] ) ) {
-			$keyword = sanitize_text_field( wp_unslash( $_POST['focus_keyword'] ) );
-			update_post_meta( $post_id, '_d5_example_focus_keyword', $keyword );
-		}
-	}
-	*/
-	// phpcs:enable Squiz.PHP.CommentedOutCode.Found
+	// The keyword is now saved via the JavaScript usePostKeywordManager hook
+	// using debounced REST API calls to persist data to WordPress options table.
+	// This follows the same pattern as the Module Visibility Manager.
 
 	// For educational purposes, log that the hook fired.
 	// Remove this in production code.

@@ -75,33 +75,57 @@ function d5_extension_example_modals_init() {
  * @return array Modified settings data.
  */
 function d5_extension_example_modals_add_settings( $settings ) {
-	// Load saved data from database (or empty array for first time).
-	$saved_data = get_option( 'divi_module_visibility_settings', array() );
+	// Load saved module visibility data from database (or empty array for first time).
+	$module_visibility_data = get_option( 'divi_module_visibility_settings', array() );
+	$settings['moduleVisibilitySettings'] = $module_visibility_data;
 
-	$settings['moduleVisibilitySettings'] = $saved_data;
+	// Load saved post keyword data from database (or empty object for first time).
+	$post_keyword_data = get_option( 'divi_post_keyword_settings', array(
+		'focusKeyword' => '',
+	) );
+	$settings['postKeywordSettings'] = $post_keyword_data;
 
 	return $settings;
 }
 
 /**
- * Register REST endpoint for saving plugin data.
+ * Register REST endpoints for saving plugin data.
  * Following D5 pattern from RESTRegistration.php
  *
  * @since 0.1.0
  */
 function d5_extension_example_modals_register_rest_routes() {
+	// Module visibility settings endpoint
 	register_rest_route(
 		'divi/v1',
 		'/module-visibility-settings/update',
 		array(
 			'methods'             => 'POST',
-			'callback'            => 'd5_extension_example_modals_save_data',
+			'callback'            => 'd5_extension_example_modals_save_module_visibility_data',
 			'permission_callback' => 'd5_extension_example_modals_save_permission',
 			'args'                => array(
 				'data' => array(
 					'required'          => true,
-					'validate_callback' => 'd5_extension_example_modals_validate_data',
-					'sanitize_callback' => 'd5_extension_example_modals_sanitize_data',
+					'validate_callback' => 'd5_extension_example_modals_validate_module_visibility_data',
+					'sanitize_callback' => 'd5_extension_example_modals_sanitize_module_visibility_data',
+				),
+			),
+		)
+	);
+
+	// Post keyword settings endpoint
+	register_rest_route(
+		'divi/v1',
+		'/post-keyword-settings/update',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'd5_extension_example_modals_save_post_keyword_data',
+			'permission_callback' => 'd5_extension_example_modals_save_permission',
+			'args'                => array(
+				'data' => array(
+					'required'          => true,
+					'validate_callback' => 'd5_extension_example_modals_validate_post_keyword_data',
+					'sanitize_callback' => 'd5_extension_example_modals_sanitize_post_keyword_data',
 				),
 			),
 		)
@@ -120,14 +144,14 @@ function d5_extension_example_modals_save_permission() {
 }
 
 /**
- * Validate data callback - following D5 validation patterns.
+ * Validate module visibility data callback - following D5 validation patterns.
  *
  * @since 0.1.0
  *
  * @param mixed $data The data to validate.
  * @return bool Whether the data is valid.
  */
-function d5_extension_example_modals_validate_data( $data ) {
+function d5_extension_example_modals_validate_module_visibility_data( $data ) {
 	if ( ! is_array( $data ) ) {
 		return false;
 	}
@@ -151,14 +175,14 @@ function d5_extension_example_modals_validate_data( $data ) {
 }
 
 /**
- * Sanitize data callback - following D5 sanitization patterns.
+ * Sanitize module visibility data callback - following D5 sanitization patterns.
  *
  * @since 0.1.0
  *
  * @param mixed $data The data to sanitize.
  * @return array Sanitized data.
  */
-function d5_extension_example_modals_sanitize_data( $data ) {
+function d5_extension_example_modals_sanitize_module_visibility_data( $data ) {
 	$sanitized = array();
 
 	foreach ( $data as $item ) {
@@ -172,14 +196,58 @@ function d5_extension_example_modals_sanitize_data( $data ) {
 }
 
 /**
- * Save data callback - following D5 saving patterns.
+ * Validate post keyword data callback - following D5 validation patterns.
+ *
+ * @since 0.1.0
+ *
+ * @param mixed $data The data to validate.
+ * @return bool Whether the data is valid.
+ */
+function d5_extension_example_modals_validate_post_keyword_data( $data ) {
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	// Allow empty arrays.
+	if ( empty( $data ) ) {
+		return true;
+	}
+
+	// Validate the data structure.
+	if ( ! isset( $data['focusKeyword'] ) ) {
+		return false;
+	}
+
+	if ( ! is_string( $data['focusKeyword'] ) ) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Sanitize post keyword data callback - following D5 sanitization patterns.
+ *
+ * @since 0.1.0
+ *
+ * @param mixed $data The data to sanitize.
+ * @return array Sanitized data.
+ */
+function d5_extension_example_modals_sanitize_post_keyword_data( $data ) {
+	return array(
+		'focusKeyword' => sanitize_text_field( $data['focusKeyword'] ),
+	);
+}
+
+/**
+ * Save module visibility data callback - following D5 saving patterns.
  *
  * @since 0.1.0
  *
  * @param WP_REST_Request $request The REST request.
  * @return WP_REST_Response|WP_Error The response.
  */
-function d5_extension_example_modals_save_data( $request ) {
+function d5_extension_example_modals_save_module_visibility_data( $request ) {
 	$data = $request->get_param( 'data' );
 
 	// Save to wp_options table.
@@ -189,7 +257,7 @@ function d5_extension_example_modals_save_data( $request ) {
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'message' => 'Data saved successfully',
+				'message' => 'Module visibility data saved successfully',
 				'data'    => $data,
 			),
 			200
@@ -197,7 +265,39 @@ function d5_extension_example_modals_save_data( $request ) {
 	} else {
 		return new WP_Error(
 			'save_failed',
-			'Failed to save data',
+			'Failed to save module visibility data',
+			array( 'status' => 500 )
+		);
+	}
+}
+
+/**
+ * Save post keyword data callback - following D5 saving patterns.
+ *
+ * @since 0.1.0
+ *
+ * @param WP_REST_Request $request The REST request.
+ * @return WP_REST_Response|WP_Error The response.
+ */
+function d5_extension_example_modals_save_post_keyword_data( $request ) {
+	$data = $request->get_param( 'data' );
+
+	// Save to wp_options table.
+	$saved = update_option( 'divi_post_keyword_settings', $data );
+
+	if ( $saved ) {
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => 'Post keyword data saved successfully',
+				'data'    => $data,
+			),
+			200
+		);
+	} else {
+		return new WP_Error(
+			'save_failed',
+			'Failed to save post keyword data',
 			array( 'status' => 500 )
 		);
 	}

@@ -1,20 +1,7 @@
 import { addFilter, addAction } from '@wordpress/hooks';
 import { PostKeywordManagerModal } from './modal/component';
 import './icons/registerIcons';
-import { registerCustomStore } from './custom-store';
 import { dispatch } from '@divi/data';
-
-/**
- * Register custom store after module library is ready.
- *
- * This ensures the store is available when the modal opens and prevents
- * any timing issues with store registration.
- *
- * @since 0.1.0
- */
-addAction('divi.moduleLibrary.registerModuleLibraryStore.after', 'postKeywordCustomStore', () => {
-  registerCustomStore();
-});
 
 /**
  * Register the Post Keyword Manager modal with Divi 5.
@@ -69,31 +56,12 @@ addFilter('divi.modalLibrary.modalMapping', 'postKeywordManager', modals => {
  * @since 0.1.0
  */
 addAction('et.builder.content.change', 'postKeywordManager', (renderedContent, postData) => {
-  // Update store with rendered content.
-  // This makes the content available to the modal for display or analysis.
-  dispatch('divi/post-keyword').updateRenderedContent(renderedContent);
-  
-  // Calculate word count from HTML.
-  // We create a temporary DOM element to extract text content from HTML.
-  // This is a simple approach - production plugins might want more sophisticated
-  // text extraction that handles special cases like code blocks, etc.
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = renderedContent;
-  
-  // Extract text content (strips HTML tags).
-  const text = tempDiv.textContent || tempDiv.innerText || '';
-  
-  // Count words by splitting on whitespace and filtering empty strings.
-  // This is a basic word count - production plugins might want to:
-  // - Handle hyphenated words
-  // - Count numbers separately
-  // - Exclude certain content (like navigation, footers)
-  // - Handle multiple languages with different word boundaries
-  const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-  const wordCount = words.length;
-  
-  // Update store with word count.
-  // The modal will reactively update when this value changes.
-  dispatch('divi/post-keyword').updateWordCount(wordCount);
+  // Hook is registered for educational purposes to demonstrate how third-party
+  // plugins can listen to content changes. The focus keyword is now managed
+  // through the Divi settings store and persisted via REST API.
+
+  // For educational purposes, log that the hook fired.
+  // Remove this in production code.
+  console.log('📋 HOOK: et.builder.content.change fired for Post Keyword Manager');
 });
 

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
-import { useSelect, useDispatch } from '@divi/data';
+import { useSelect } from '@divi/data';
+import { usePostKeywordManager } from '../hooks';
 
 /**
  * Keyword Form Component.
@@ -38,30 +39,26 @@ import { useSelect, useDispatch } from '@divi/data';
 export const KeywordForm = () => {
   console.log('📋 FORM: Rendering keyword form');
 
-  // Get data from Redux stores (raw data only, no transformations).
-  // Following the critical rule: NEVER transform data inside useSelect.
-  const focusKeyword = useSelect(s => s('divi/post-keyword').getFocusKeyword(), []);
-  const wordCount    = useSelect(s => s('divi/post-keyword').getWordCount(), []);
-  const postTitle    = useSelect(s => s('divi/settings').getSetting(['post', 'title']), []);
-  
-  console.log('📋 FORM: Current data - keyword:', focusKeyword, 'wordCount:', wordCount, 'title:', postTitle);
-  
-  // Get dispatch function for updating the store.
-  const { setFocusKeyword } = useDispatch('divi/post-keyword');
-  
+  // Use the custom hook for managing keyword data
+  const { focusKeyword, updateFocusKeyword } = usePostKeywordManager();
+
+  // Get post title from Divi settings
+  const postTitle = useSelect(s => s('divi/settings').getSetting(['post', 'title']), []);
+
+  console.log('📋 FORM: Current data - keyword:', focusKeyword, 'title:', postTitle);
+
   /**
    * Handle keyword input change.
    *
    * This is called every time the user types in the keyword input field.
-   * It dispatches an action to update the store, which will trigger the
-   * effects pattern to save to localStorage/app preferences.
+   * It uses the custom hook to update both the store and persist to database.
    *
    * @param {Event} event The input change event.
    */
   const handleKeywordChange = (event) => {
     const newKeyword = event.target.value;
     console.log('📋 FORM: Keyword changed to:', newKeyword);
-    setFocusKeyword(newKeyword);
+    updateFocusKeyword(newKeyword);
   };
   
   return (
@@ -75,14 +72,8 @@ export const KeywordForm = () => {
           <strong>{__('Title:', 'et_builder')}</strong>{' '}
           {postTitle || __('Untitled', 'et_builder')}
         </p>
-        <p style={{ margin: '8px 0' }}>
-          <strong>{__('Word Count:', 'et_builder')}</strong>{' '}
-          <span style={{ fontSize: '18px', fontWeight: '600', color: '#2196F3' }}>
-            {wordCount}
-          </span>
-        </p>
         <p style={{ fontSize: '12px', color: '#666', margin: '8px 0' }}>
-          {__('💡 Word count updates when you save (draft, publish, or preview).', 'et_builder')}
+          {__('💡 Focus keyword is saved automatically to WordPress database as you type.', 'et_builder')}
         </p>
       </div>
       
@@ -107,7 +98,7 @@ export const KeywordForm = () => {
           }}
         />
         <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-          {__('💡 This keyword is saved automatically as you type.', 'et_builder')}
+          {__('💡 This keyword is saved automatically to WordPress database as you type.', 'et_builder')}
         </p>
       </div>
       
@@ -124,26 +115,27 @@ export const KeywordForm = () => {
         </h4>
         <ul style={{ marginBottom: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6' }}>
           <li>
-            {__('The word count updates via the ', 'et_builder')}
-            <code style={{ 
-              backgroundColor: '#e3f2fd', 
-              padding: '2px 6px', 
+            {__('The ', 'et_builder')}
+            <code style={{
+              backgroundColor: '#e3f2fd',
+              padding: '2px 6px',
               borderRadius: '3px',
               fontSize: '12px',
             }}>
               et.builder.content.change
             </code>
-            {__(' hook', 'et_builder')}
+            {__(' hook demonstrates content change listening', 'et_builder')}
           </li>
           <li>{__('This hook fires after save operations (draft, publish, preview)', 'et_builder')}</li>
-          <li>{__('Third-party plugins can use this hook to analyze content', 'et_builder')}</li>
-          <li>{__('Your focus keyword is saved to browser storage automatically', 'et_builder')}</li>
+          <li>{__('Third-party plugins can use this hook to analyze content changes', 'et_builder')}</li>
+          <li>{__('Your focus keyword is saved to WordPress database via REST API with debouncing', 'et_builder')}</li>
+          <li>{__('Data persistence follows the same pattern as Module Visibility Manager', 'et_builder')}</li>
           <li>{__('Check the browser console to see detailed logging of hook events', 'et_builder')}</li>
         </ul>
       </div>
       
       {/* Developer Note */}
-      <div style={{ 
+      <div style={{
         marginTop: '16px',
         padding: '12px',
         backgroundColor: '#fff3e0',
@@ -152,7 +144,7 @@ export const KeywordForm = () => {
       }}>
         <p style={{ margin: 0, fontSize: '12px', color: '#e65100' }}>
           <strong>{__('🔧 For Developers:', 'et_builder')}</strong>{' '}
-          {__('Open the browser console to see detailed logs of hook events, store updates, and data flow. This example includes extensive logging for educational purposes.', 'et_builder')}
+          {__('Open the browser console to see detailed logs of hook events, store updates, and debounced REST API calls. This example follows the same data management pattern as the Module Visibility Manager.', 'et_builder')}
         </p>
       </div>
     </div>
