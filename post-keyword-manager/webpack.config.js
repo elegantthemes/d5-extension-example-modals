@@ -24,6 +24,9 @@ module.exports = {
     '@divi/icon-library': ['divi', 'iconLibrary'],
     '@divi/app-ui': ['divi', 'appUi'],
     '@divi/error-boundary': ['divi', 'errorBoundary'],
+    '@divi/ui-library': ['divi', 'uiLibrary'],
+    '@divi/tooltip': ['divi', 'tooltip'],
+    '@divi/field-library': ['divi', 'fieldLibrary'],
   },
   module: {
     rules: [
