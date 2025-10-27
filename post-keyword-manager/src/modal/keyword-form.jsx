@@ -42,8 +42,13 @@ export const KeywordForm = () => {
   // Use the custom hook for managing keyword data
   const { focusKeyword, updateFocusKeyword } = usePostKeywordManager();
 
-  // Get post title from Divi settings
+  // Get post data from Divi settings store
+  // Available post data includes: title, excerpt, content, status, type, id, etc.
   const postTitle = useSelect(s => s('divi/settings').getSetting(['post', 'title']), []);
+  const postId = useSelect(s => s('divi/settings').getSetting(['post', 'id']), []);
+  const postType = useSelect(s => s('divi/settings').getSetting(['post', 'type']), []);
+  const postStatus = useSelect(s => s('divi/settings').getSetting(['post', 'status']), []);
+  const postExcerpt = useSelect(s => s('divi/settings').getSetting(['post', 'excerpt']), []);
 
   /**
    * Handle keyword input change.
@@ -60,6 +65,22 @@ export const KeywordForm = () => {
   
   return (
     <div style={{ padding: '20px' }}>
+      {/* Post Information Section */}
+      <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f0f8ff', borderRadius: '4px', border: '1px solid #e1e8ed' }}>
+        <h4 style={{ marginTop: 0, fontSize: '14px', fontWeight: '600', color: '#2b5aa0' }}>
+          {__('Post Information', 'et_builder')}
+        </h4>
+        <div style={{ fontSize: '13px', lineHeight: '1.5', color: '#666' }}>
+          <p><strong>{__('Title:', 'et_builder')}</strong> {postTitle || __('No title available', 'et_builder')}</p>
+          <p><strong>{__('ID:', 'et_builder')}</strong> {postId || __('N/A', 'et_builder')}</p>
+          <p><strong>{__('Type:', 'et_builder')}</strong> {postType || __('N/A', 'et_builder')}</p>
+          <p><strong>{__('Status:', 'et_builder')}</strong> {postStatus || __('N/A', 'et_builder')}</p>
+          {postExcerpt && (
+            <p><strong>{__('Excerpt:', 'et_builder')}</strong> {postExcerpt.substring(0, 100)}...</p>
+          )}
+        </div>
+      </div>
+
       {/* Focus Keyword Section */}
       <FieldWrapper
         label={__('Focus Keyword', 'et_builder')}
@@ -84,16 +105,7 @@ export const KeywordForm = () => {
         </p>
       </div>
 
-      {/* Post Information Section */}
-      <div style={{ marginTop: '20px' }}>
-        <h3 style={{ marginTop: 0, fontSize: '16px', fontWeight: '600' }}>
-          {__('Post Information', 'et_builder')}
-        </h3>
-        <p style={{ margin: '8px 0' }}>
-          <strong>{__('Title:', 'et_builder')}</strong>{' '}
-          {postTitle || __('Untitled', 'et_builder')}
-        </p>
-      </div>
+      
     </div>
   );
 };
