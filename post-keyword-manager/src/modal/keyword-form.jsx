@@ -56,10 +56,14 @@ export const KeywordForm = () => {
    * This is called every time the user types in the keyword input field.
    * It uses the custom hook to update both the store and persist to database.
    *
-   * @param {Event} event The input change event.
+   * Note: The Text component from @divi/field-library passes an object with
+   * inputValue property, not a standard DOM event.
+   *
+   * @param {Object} params The change callback parameters.
+   * @param {string} [params.inputValue] The new input value.
    */
-  const handleKeywordChange = (event) => {
-    const newKeyword = event.target.value;
+  const handleKeywordChange = (params) => {
+    const newKeyword = params.inputValue || '';
     updateFocusKeyword(newKeyword);
   };
   
