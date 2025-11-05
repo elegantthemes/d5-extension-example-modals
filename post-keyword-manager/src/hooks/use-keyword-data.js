@@ -1,4 +1,5 @@
 import { useSelect, useDispatch } from '@divi/data';
+import { useFetch } from '@divi/rest';
 import { debounce } from 'lodash';
 
 /**
@@ -62,21 +63,18 @@ export const usePostKeywordManager = () => {
   // Get settings store dispatcher for saving data
   const { add } = useDispatch('divi/settings');
 
+  // Use Divi's useFetch hook for REST API calls
+  const { fetch } = useFetch();
+
   // Persist keyword data to WordPress database via REST API
   const saveToDatabase = async (data) => {
     try {
-      const response = await fetch('/wp-json/divi/v1/post-keyword-settings/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-        },
-        body: JSON.stringify({ data })
+      await fetch({
+        method:      'POST',
+        restRoute:   '/divi/v1/post-keyword-settings/update',
+        data:        { data },
+        forceRequest: true,
       });
-
-      if (!response.ok) {
-        console.error('Post Keyword Manager - Save failed:', response.statusText);
-      }
     } catch (error) {
       console.error('Post Keyword Manager - Save failed:', error);
     }
