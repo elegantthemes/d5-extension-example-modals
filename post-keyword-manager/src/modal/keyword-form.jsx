@@ -44,11 +44,23 @@ export const KeywordForm = () => {
 
   // Get post data from Divi settings store
   // Available post data includes: title, excerpt, content, status, type, id, etc.
-  const postTitle = useSelect(s => s('divi/settings').getSetting(['post', 'title']), []);
-  const postId = useSelect(s => s('divi/settings').getSetting(['post', 'id']), []);
-  const postType = useSelect(s => s('divi/settings').getSetting(['post', 'type']), []);
-  const postStatus = useSelect(s => s('divi/settings').getSetting(['post', 'status']), []);
-  const postExcerpt = useSelect(s => s('divi/settings').getSetting(['post', 'excerpt']), []);
+  const {
+    postTitle,
+    postId,
+    postType,
+    postStatus,
+    postExcerpt,
+  } = useSelect(select => {
+    const post = select('divi/settings').getSetting(['post']);
+
+    return {
+      postTitle:  post?.title ?? '',
+      postId:     post?.id ?? '',
+      postType:   post?.type ?? '',
+      postStatus: post?.status ?? '',
+      postExcerpt: post?.excerpt ?? '',
+    };
+  }, []);
 
   /**
    * Handle keyword input change.
