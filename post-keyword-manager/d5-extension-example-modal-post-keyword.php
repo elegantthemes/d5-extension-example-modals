@@ -97,35 +97,3 @@ function d5_post_keyword_enqueue_assets() {
 
 add_action( 'divi_visual_builder_assets_before_enqueue_scripts', 'd5_post_keyword_enqueue_assets' );
 
-/**
- * Save focus keyword to post meta when post is updated.
- *
- * This demonstrates how to persist data from the Visual Builder modal
- * to WordPress post meta. The keyword is stored in a custom meta field
- * that can be retrieved later for SEO analysis or other purposes.
- *
- * The keyword is saved via the JavaScript hook's debounced REST API pattern
- * to the WordPress options table, following the same pattern as the Module
- * Visibility Manager. This provides persistent storage without using localStorage.
- *
- * This hook fires after the post content is successfully saved to the database.
- *
- * @since 0.1.0
- *
- * @param int $post_id The ID of the post being saved.
- */
-function d5_post_keyword_save_meta( $post_id ) {
-	// The keyword is now saved via the JavaScript usePostKeywordManager hook
-	// using debounced REST API calls to persist data to WordPress options table.
-	// This follows the same pattern as the Module Visibility Manager.
-
-	// For educational purposes, log that the hook fired.
-	// Remove this in production code.
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'D5 Post Keyword Manager: Save hook fired for post ID ' . $post_id );
-	}
-}
-
-add_action( 'divi_visual_builder_rest_update_post', 'd5_post_keyword_save_meta' );
-
