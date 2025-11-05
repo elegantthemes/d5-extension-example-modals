@@ -1,4 +1,5 @@
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   entry: {
@@ -48,6 +49,25 @@ module.exports = {
             },
           }
         ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          // Loader that enables imported css to be extracted and outputted into its own file.
+          // @see https://webpack.js.org/plugins/mini-css-extract-plugin/#loader-options
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+
+          // Loader that interprets @import and url() like import/require() and resolve them.
+          // @see https://webpack.js.org/loaders/css-loader/
+          {
+            loader: 'css-loader',
+            options: {
+              url: false,
+            },
+          },
+        ],
       }
     ]
   },
@@ -59,6 +79,20 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     clean: true,
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: '../styles/[name].css',
+    }),
+  ],
   mode: process.env.NODE_ENV || 'development',
+  watchOptions: {
+    ignored: [
+      '**/node_modules/**',
+      '**/build/**',
+      '**/.git/**',
+    ],
+    aggregateTimeout: 300,
+    poll: false,
+  },
 };
 

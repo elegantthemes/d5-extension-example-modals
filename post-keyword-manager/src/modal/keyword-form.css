@@ -1,0 +1,47 @@
+/* Post Keyword Manager Modal Styles */
+.keyword-form-container {
+  padding: 20px;
+}
+
+.keyword-form-post-info {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #e1e8ed;
+}
+
+.keyword-form-post-info-title {
+  margin-top: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b5aa0;
+}
+
+.keyword-form-post-info-content {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.keyword-form-notes {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.keyword-form-notes-title {
+  margin-top: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.keyword-form-notes-text {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+}
+

@@ -55,7 +55,21 @@ function d5_post_keyword_enqueue_assets() {
 				],
 			]
 		);
-
+		// Register CSS bundle separately.
+		// Modals are rendered in the TOP WINDOW (via React portals), not in the app window iframe.
+		// Therefore CSS must be enqueued for top_window, not app_window.
+		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
+			[
+				'name'    => 'd5-post-keyword-bundle-style',
+				'version' => '1.0.0',
+				'style'   => [
+					'src'                => D5_POST_KEYWORD_URL . 'styles/bundle.css',
+					'deps'               => [],
+					'enqueue_top_window' => true,
+					'enqueue_app_window' => false,
+				],
+			]
+		);
 		// Register main bundle script.
 		// This contains the modal component, Redux store, and hook integration.
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(

@@ -4,6 +4,7 @@ import { useSelect } from '@divi/data';
 import { FieldWrapper } from '@divi/modal';
 import { Text } from '@divi/field-library';
 import { usePostKeywordManager } from '../hooks';
+import './keyword-form.css';
 
 /**
  * Keyword Form Component.
@@ -80,13 +81,13 @@ export const KeywordForm = () => {
   };
   
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="keyword-form-container" id="keyword-form-container">
       {/* Post Information Section */}
-      <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f0f8ff', borderRadius: '4px', border: '1px solid #e1e8ed' }}>
-        <h4 style={{ marginTop: 0, fontSize: '14px', fontWeight: '600', color: '#2b5aa0' }}>
+      <div className="keyword-form-post-info">
+        <h4 className="keyword-form-post-info-title">
           {__('Post Information', 'et_builder')}
         </h4>
-        <div style={{ fontSize: '13px', lineHeight: '1.5', color: '#666' }}>
+        <div className="keyword-form-post-info-content">
           <p><strong>{__('Title:', 'et_builder')}</strong> {postTitle || __('No title available', 'et_builder')}</p>
           <p><strong>{__('ID:', 'et_builder')}</strong> {postId || __('N/A', 'et_builder')}</p>
           <p><strong>{__('Type:', 'et_builder')}</strong> {postType || __('N/A', 'et_builder')}</p>
@@ -112,16 +113,14 @@ export const KeywordForm = () => {
       </FieldWrapper>
 
       {/* Notes Section - Simple display after text fields */}
-      <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-        <h4 style={{ marginTop: 0, fontSize: '14px', fontWeight: '600', color: '#666' }}>
+      <div className="keyword-form-notes">
+        <h4 className="keyword-form-notes-title">
           {__('Notes', 'et_builder')}
         </h4>
-        <p style={{ margin: '8px 0', fontSize: '13px', lineHeight: '1.5', color: '#666' }}>
+        <p className="keyword-form-notes-text">
           {__('Keyword density analysis runs automatically when you save your post. Check the browser console for detailed SEO analysis results.', 'et_builder')}
         </p>
       </div>
-
-      
     </div>
   );
 };
