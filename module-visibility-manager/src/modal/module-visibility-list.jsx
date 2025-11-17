@@ -15,7 +15,7 @@ import { useReactiveModuleFilter } from '../hooks';
 const ModuleVisibilityManager = () => {
   // Access Divi 5's built-in module library for available modules
   const allModules = useSelect(select =>
-    select('divi/module-library')?.getModules() || {}, []
+    select('divi/module-library')?.getModules() || {}
   );
 
   // Retrieve current module visibility settings from the store
@@ -45,7 +45,7 @@ const ModuleVisibilityManager = () => {
       });
 
     } catch (error) {
-      console.error('❌ Save failed:', error);
+      console.error('Module Visibility Manager - Save failed:', error);
     }
   };
 
