@@ -55,7 +55,7 @@ addFilter('divi.modalLibrary.modalMapping', 'postKeywordManager', modals => {
  *
  * @since 0.1.0
  */
-addAction('et.builder.content.change', 'postKeywordManager', (renderedContent, postData) => {
+addAction('divi.rest.syncToServer.content.change', 'postKeywordManager', (renderedContent, postData) => {
   // Get our focus keyword from Divi settings
   const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
   const focusKeyword = keywordData?.focusKeyword || '';
@@ -127,6 +127,45 @@ addAction('divi.pageSettings.store.setting.update', 'postKeywordManager', (setti
   // Get focus keyword from Divi settings for real-time SEO analysis
   const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
   const focusKeyword = keywordData?.focusKeyword || '';
+
+  // Handle featured image changes - check alt and title
+  if (settingKey === 'postImage') {
+    const imageId = newValue || '';
+    if (!imageId || imageId === '0') {
+      console.warn('⚠️ SEO Warning: Featured image removed or not set.');
+      return;
+    }
+
+    // Try to find the featured image in the DOM to check alt and title
+    const featuredImage = document.querySelector('img.wp-post-image, img.attachment-post-thumbnail, .et_featured_image img');
+    
+    if (featuredImage) {
+      const altText = featuredImage.getAttribute('alt') || '';
+      const titleText = featuredImage.getAttribute('title') || '';
+      
+      console.log('📸 Featured Image Updated:', {
+        imageId,
+        alt: altText || '(empty)',
+        title: titleText || '(empty)',
+      });
+
+      if (!altText) {
+        console.warn('⚠️ SEO Warning: Featured image alt text is empty. Add descriptive alt text for better SEO and accessibility.');
+      }
+      if (!titleText) {
+        console.warn('⚠️ SEO Warning: Featured image title is empty. Consider adding a title attribute.');
+      }
+      if (altText && titleText) {
+        console.log('✅ SEO OK: Featured image has both alt text and title set.');
+      }
+    } else {
+      console.log('📸 Featured Image Updated:', {
+        imageId,
+        note: 'Image element not found in DOM yet. Alt and title will be available after page renders.',
+      });
+    }
+    return;
+  }
 
   // Only analyze if we have a focus keyword and the setting is relevant for SEO
   if (!focusKeyword || !['postTitle', 'postExcerpt'].includes(settingKey)) {

@@ -1,6 +1,6 @@
 # D5 Extension Example: Post Keyword Manager
 
-An **educational example** demonstrating how to integrate with the `et.builder.content.change` hook in Divi 5 Visual Builder. This example shows third-party developers how to receive real-time content updates and manage post metadata.
+An **educational example** demonstrating how to integrate with Divi 5 hooks for real-time page settings updates and content analysis. This example shows third-party developers how to receive real-time content updates, validate page settings (title, excerpt, featured image alt/title), and manage post metadata.
 
 ## 🎯 **What You'll Learn**
 
@@ -156,38 +156,51 @@ addAction('divi.pageSettings.store.setting.update', 'your-namespace', (settingKe
 This hook is perfect for:
 - **Real-time preview updates** based on page settings
 - **Immediate analytics tracking** during editing
-- **Live validation feedback** (e.g., SEO keyword checks)
+- **Live validation feedback** (e.g., SEO keyword checks, image alt/title validation)
 - **External API synchronization** during editing
 - **Custom UI updates** based on settings changes
-- **Real-time SEO analysis** of title/excerpt
+- **Real-time SEO analysis** of title/excerpt/featured image
 
 ### Example: Real-Time SEO Feedback
 
-This example demonstrates checking if the focus keyword appears in page title/excerpt as the user types:
+This example demonstrates multiple real-time SEO checks:
 
+**1. Keyword Analysis for Title/Excerpt:**
 ```javascript
 addAction('divi.pageSettings.store.setting.update', 'postKeywordManager', (settingKey, newValue) => {
   // Get focus keyword from settings
   const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
   const focusKeyword = keywordData?.focusKeyword || '';
 
-  // Only analyze relevant settings
-  if (!focusKeyword || !['postTitle', 'postExcerpt'].includes(settingKey)) {
-    return;
-  }
-
-  // Check if keyword appears in the setting
-  const containsKeyword = newValue.toLowerCase().includes(focusKeyword.toLowerCase());
-  
-  // Provide immediate feedback
-  if (settingKey === 'postTitle') {
-    if (containsKeyword) {
-      console.log(`✅ SEO Tip: Focus keyword found in title!`);
-    } else {
-      console.warn(`⚠️ SEO Warning: Focus keyword not found in title.`);
-    }
+  // Check if keyword appears in title/excerpt
+  if (focusKeyword && ['postTitle', 'postExcerpt'].includes(settingKey)) {
+    const containsKeyword = newValue.toLowerCase().includes(focusKeyword.toLowerCase());
+    // Provide immediate feedback...
   }
 });
+```
+
+**2. Featured Image Alt/Title Validation:**
+```javascript
+if (settingKey === 'postImage') {
+  const imageId = newValue || '';
+  
+  // Find featured image in DOM
+  const featuredImage = document.querySelector('img.wp-post-image, img.attachment-post-thumbnail');
+  
+  if (featuredImage) {
+    const altText = featuredImage.getAttribute('alt') || '';
+    const titleText = featuredImage.getAttribute('title') || '';
+    
+    // Check for empty alt/title and provide SEO warnings
+    if (!altText) {
+      console.warn('⚠️ SEO Warning: Featured image alt text is empty.');
+    }
+    if (!titleText) {
+      console.warn('⚠️ SEO Warning: Featured image title is empty.');
+    }
+  }
+}
 ```
 
 ### When to Use Which Hook
@@ -368,37 +381,6 @@ function your_save_function($post_id) {
   <KeywordDensityChart data={densityData} />
 </div>
 ```
-
-## 📋 **Testing Checklist**
-
-### Hook Integration
-- [ ] `et.builder.content.change` hook fires when saving draft
-- [ ] `et.builder.content.change` hook fires when publishing
-- [ ] `et.builder.content.change` hook fires when previewing
-- [ ] Rendered content is received correctly
-- [ ] Post ID is available in postData
-- [ ] `divi.pageSettings.store.setting.update` hook fires immediately when editing page title
-- [ ] `divi.pageSettings.store.setting.update` hook fires immediately when editing page excerpt
-- [ ] Real-time SEO feedback appears in console as user types
-
-### UI Functionality
-- [ ] Toolbar button appears
-- [ ] Modal opens/closes correctly
-- [ ] Modal is draggable
-- [ ] Modal is resizable
-- [ ] Data displays correctly
-
-### Data Persistence
-- [ ] Keyword saves to localStorage
-- [ ] Keyword persists after page reload
-- [ ] Word count updates after save
-- [ ] No console errors
-
-### Build Process
-- [ ] `yarn install` completes
-- [ ] `yarn build` creates bundle
-- [ ] Bundle loads without errors
-- [ ] No webpack warnings
 
 ## 🐛 **Troubleshooting**
 
