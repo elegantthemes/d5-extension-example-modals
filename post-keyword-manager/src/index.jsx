@@ -89,3 +89,42 @@ addAction('et.builder.content.change', 'postKeywordManager', (renderedContent, p
   }
 });
 
+/**
+ * Listen for real-time page settings changes via divi.pageSettings.store.setting.update hook.
+ *
+ * This hook fires immediately when page settings (post title, excerpt, featured image, etc.)
+ * are changed in the Visual Builder, BEFORE save operations complete. This enables
+ * real-time integrations and immediate feedback during editing.
+ *
+ * Educational Note for Third-Party Developers:
+ * =============================================
+ * The divi.pageSettings.store.setting.update hook is designed for plugins that need
+ * to react immediately to page settings changes during editing, not just after save.
+ *
+ * When to use this hook:
+ * - Real-time preview updates
+ * - Immediate analytics tracking
+ * - Live validation feedback
+ * - External API synchronization during editing
+ * - Custom UI updates based on settings
+ *
+ * Hook Parameters:
+ * @param {string} settingKey - The name of the setting being updated (e.g., 'postTitle', 'postExcerpt', 'postImage')
+ * @param {string} newValue - The new value being set
+ * @param {string} previousValue - The previous value before the update
+ *
+ * Comparison with et.builder.content.change:
+ * - This hook: Fires immediately during editing, before save
+ * - et.builder.content.change: Fires after save completes with rendered content
+ *
+ * @since 0.1.0
+ */
+addAction('divi.pageSettings.store.setting.update', 'postKeywordManager', (settingKey, newValue) => {
+  // Simple console logging for testing the new hook
+  console.log('Post Keyword Manager - Page Setting Updated (Real-Time):', {
+    setting:   settingKey,
+    newValue:  newValue,
+    timestamp: new Date().toISOString(),
+  });
+});
+
