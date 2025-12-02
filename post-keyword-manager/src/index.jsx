@@ -111,20 +111,52 @@ addAction('et.builder.content.change', 'postKeywordManager', (renderedContent, p
  * Hook Parameters:
  * @param {string} settingKey - The name of the setting being updated (e.g., 'postTitle', 'postExcerpt', 'postImage')
  * @param {string} newValue - The new value being set
- * @param {string} previousValue - The previous value before the update
  *
  * Comparison with et.builder.content.change:
  * - This hook: Fires immediately during editing, before save
  * - et.builder.content.change: Fires after save completes with rendered content
  *
+ * Example Implementation:
+ * This hook listener demonstrates real-time SEO analysis by checking if the focus keyword
+ * appears in page title or excerpt as the user types. It provides immediate feedback
+ * about keyword placement and SEO best practices.
+ *
  * @since 0.1.0
  */
 addAction('divi.pageSettings.store.setting.update', 'postKeywordManager', (settingKey, newValue) => {
-  // Simple console logging for testing the new hook
-  console.log('Post Keyword Manager - Page Setting Updated (Real-Time):', {
-    setting:   settingKey,
-    newValue:  newValue,
-    timestamp: new Date().toISOString(),
-  });
+  // Get focus keyword from Divi settings for real-time SEO analysis
+  const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
+  const focusKeyword = keywordData?.focusKeyword || '';
+
+  // Only analyze if we have a focus keyword and the setting is relevant for SEO
+  if (!focusKeyword || !['postTitle', 'postExcerpt'].includes(settingKey)) {
+    return;
+  }
+
+  // Check if focus keyword appears in the page title or excerpt
+  const settingValue = (newValue || '').toLowerCase();
+  const keywordLower = focusKeyword.toLowerCase();
+  const containsKeyword = settingValue.includes(keywordLower);
+  const keywordPosition = containsKeyword ? settingValue.indexOf(keywordLower) : -1;
+  const isNearStart = keywordPosition >= 0 && keywordPosition < 60; // Within first 60 characters
+
+  // Provide real-time SEO feedback
+  if (settingKey === 'postTitle') {
+    if (containsKeyword) {
+      if (isNearStart) {
+        console.log(`✅ SEO Tip: Focus keyword "${focusKeyword}" found near the start of page title - excellent for SEO!`);
+      } else {
+        console.log(`⚠️ SEO Tip: Focus keyword "${focusKeyword}" found in page title, but consider moving it closer to the beginning.`);
+      }
+    } else {
+      console.warn(`⚠️ SEO Warning: Focus keyword "${focusKeyword}" not found in page title. Consider including it for better SEO.`);
+    }
+  } else if (settingKey === 'postExcerpt') {
+    if (containsKeyword) {
+      console.log(`✅ SEO Tip: Focus keyword "${focusKeyword}" found in page excerpt - good for SEO!`);
+    } else {
+      console.warn(`⚠️ SEO Warning: Focus keyword "${focusKeyword}" not found in page excerpt. Consider including it.`);
+    }
+  }
 });
 
