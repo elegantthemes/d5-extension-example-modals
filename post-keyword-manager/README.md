@@ -1,15 +1,16 @@
 # D5 Extension Example: Post Keyword Manager
 
-An **educational example** demonstrating how to integrate with the `et.builder.content.change` hook in Divi 5 Visual Builder. This example shows third-party developers how to receive real-time content updates and manage post metadata.
+An **educational example** demonstrating how to integrate with Divi 5 hooks for real-time page settings updates and content analysis. This example shows third-party developers how to receive real-time content updates, validate page settings (title, excerpt, featured image alt/title), and manage post metadata.
 
 ## 🎯 **What You'll Learn**
 
 ### ✅ **Hook Integration**
 
-* **How to listen** to the `et.builder.content.change` hook
-* **When the hook fires** (after save operations: draft, publish, preview)
-* **What data you receive** (rendered HTML content + post metadata)
-* **How to process** the rendered content for analysis
+* **How to listen** to both `et.builder.content.change` and `divi.pageSettings.store.setting.update` hooks
+* **When each hook fires** (after save vs. during editing)
+* **What data you receive** from each hook
+* **How to process** rendered content for analysis
+* **How to provide** real-time feedback during editing
 
 ### ✅ **Redux Store Patterns**
 
@@ -67,9 +68,20 @@ yarn build
 yarn build:dev
 ```
 
-## 📚 **How the et.builder.content.change Hook Works**
+## 📚 **How the Hooks Work**
 
-### Hook Overview
+### Hook Overview: Two Complementary Hooks
+
+This example demonstrates **two different hooks** that serve different purposes:
+
+1. **`et.builder.content.change`** - Fires **after** save with rendered content
+2. **`divi.pageSettings.store.setting.update`** - Fires **immediately** during editing
+
+---
+
+## 🔄 **et.builder.content.change Hook**
+
+### Overview
 
 The `et.builder.content.change` hook is specifically designed for third-party plugins that need to analyze or process the rendered output of the Visual Builder.
 
@@ -106,6 +118,104 @@ This hook is perfect for:
 - **Accessibility checking**
 - **Custom content indexing**
 - **Content compliance** verification
+
+---
+
+## ⚡ **divi.pageSettings.store.setting.update Hook**
+
+### Overview
+
+The `divi.pageSettings.store.setting.update` hook fires **immediately** when page settings (post title, excerpt, featured image, etc.) are changed in the Visual Builder, **before** save operations complete. This enables real-time integrations and immediate feedback during editing.
+
+**Location**: `visual-builder/packages/page-settings/src/store/reducer.ts`
+
+**When it fires**:
+- Immediately when page settings change (as user types/edits)
+- Before save operations complete
+- For all page settings updates (postTitle, postExcerpt, postImage, etc.)
+
+**What you receive**:
+```javascript
+addAction('divi.pageSettings.store.setting.update', 'your-namespace', (settingKey, newValue) => {
+  // settingKey: string - The name of the setting (e.g., 'postTitle', 'postExcerpt', 'postImage')
+  // newValue: string - The new value being set
+});
+```
+
+### Key Differences from et.builder.content.change
+
+| Feature | `divi.pageSettings.store.setting.update` | `et.builder.content.change` |
+|---------|------------------------------------------|------------------------------|
+| **Timing** | Immediately during editing | After save completes |
+| **Data** | Setting name + new value | Rendered HTML + post metadata |
+| **Use Case** | Real-time validation/feedback | Content analysis after save |
+| **Performance** | Lightweight (no server request) | Requires rendered content generation |
+
+### Use Cases
+
+This hook is perfect for:
+- **Real-time preview updates** based on page settings
+- **Immediate analytics tracking** during editing
+- **Live validation feedback** (e.g., SEO keyword checks, image alt/title validation)
+- **External API synchronization** during editing
+- **Custom UI updates** based on settings changes
+- **Real-time SEO analysis** of title/excerpt/featured image
+
+### Example: Real-Time SEO Feedback
+
+This example demonstrates multiple real-time SEO checks:
+
+**1. Keyword Analysis for Title/Excerpt:**
+```javascript
+addAction('divi.pageSettings.store.setting.update', 'postKeywordManager', (settingKey, newValue) => {
+  // Get focus keyword from settings
+  const keywordData = select('divi/settings').getSetting('postKeywordSettings', { focusKeyword: '' });
+  const focusKeyword = keywordData?.focusKeyword || '';
+
+  // Check if keyword appears in title/excerpt
+  if (focusKeyword && ['postTitle', 'postExcerpt'].includes(settingKey)) {
+    const containsKeyword = newValue.toLowerCase().includes(focusKeyword.toLowerCase());
+    // Provide immediate feedback...
+  }
+});
+```
+
+**2. Featured Image Alt/Title Validation:**
+```javascript
+if (settingKey === 'postImage') {
+  const imageId = newValue || '';
+  
+  // Find featured image in DOM
+  const featuredImage = document.querySelector('img.wp-post-image, img.attachment-post-thumbnail');
+  
+  if (featuredImage) {
+    const altText = featuredImage.getAttribute('alt') || '';
+    const titleText = featuredImage.getAttribute('title') || '';
+    
+    // Check for empty alt/title and provide SEO warnings
+    if (!altText) {
+      console.warn('⚠️ SEO Warning: Featured image alt text is empty.');
+    }
+    if (!titleText) {
+      console.warn('⚠️ SEO Warning: Featured image title is empty.');
+    }
+  }
+}
+```
+
+### When to Use Which Hook
+
+**Use `divi.pageSettings.store.setting.update` when**:
+- You need immediate feedback during editing
+- You want to validate settings in real-time
+- You need to update UI based on settings changes
+- You want to track analytics as user edits
+
+**Use `et.builder.content.change` when**:
+- You need the fully rendered HTML content
+- You want to analyze the complete page output
+- You need to process content after it's saved
+- You want to perform comprehensive content analysis
 
 ## 🏗️ **Code Structure**
 
@@ -157,10 +267,17 @@ addFilter('divi.modalLibrary.modalMapping', 'namespace', modals => {
   return modals;
 });
 
-// Listen to the hook
+// Listen to content change hook (fires after save)
 addAction('et.builder.content.change', 'namespace', (renderedContent, postData) => {
-  // Process the content
+  // Process the rendered content
   // Update your store
+});
+
+// Listen to page settings update hook (fires immediately during editing)
+addAction('divi.pageSettings.store.setting.update', 'namespace', (settingKey, newValue) => {
+  // Provide real-time feedback
+  // Validate settings immediately
+  // Update UI based on settings changes
 });
 ```
 
@@ -265,34 +382,6 @@ function your_save_function($post_id) {
 </div>
 ```
 
-## 📋 **Testing Checklist**
-
-### Hook Integration
-- [ ] Hook fires when saving draft
-- [ ] Hook fires when publishing
-- [ ] Hook fires when previewing
-- [ ] Rendered content is received correctly
-- [ ] Post ID is available in postData
-
-### UI Functionality
-- [ ] Toolbar button appears
-- [ ] Modal opens/closes correctly
-- [ ] Modal is draggable
-- [ ] Modal is resizable
-- [ ] Data displays correctly
-
-### Data Persistence
-- [ ] Keyword saves to localStorage
-- [ ] Keyword persists after page reload
-- [ ] Word count updates after save
-- [ ] No console errors
-
-### Build Process
-- [ ] `yarn install` completes
-- [ ] `yarn build` creates bundle
-- [ ] Bundle loads without errors
-- [ ] No webpack warnings
-
 ## 🐛 **Troubleshooting**
 
 ### Hook Not Firing
@@ -304,6 +393,15 @@ function your_save_function($post_id) {
 2. Verify the hook listener is registered correctly
 3. Check browser console for errors
 4. Ensure the plugin is activated
+
+**Problem**: The `divi.pageSettings.store.setting.update` hook doesn't fire.
+
+**Solutions**:
+1. Check that you're editing page settings in the Page Settings modal
+2. Verify the hook listener is registered correctly
+3. Check browser console for errors
+4. Ensure you're editing a setting that triggers the hook (postTitle, postExcerpt, etc.)
+5. Make sure the Visual Builder is fully loaded
 
 ### Modal Not Opening
 
