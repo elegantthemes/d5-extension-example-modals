@@ -59,8 +59,8 @@ function d5_extension_example_modals_init() {
 	// Load example modules.
 	d5_extension_example_modals_load_examples();
 
-	// Register settings data for Divi Visual Builder.
-	add_filter( 'divi_visual_builder_settings_data', 'd5_extension_example_modals_add_settings' );
+	// Register settings data for Divi Visual Builder (priority 20: run after core merges `currentPage`, etc.).
+	add_filter( 'divi_visual_builder_settings_data', 'd5_extension_example_modals_add_settings', 20 );
 
 	// Register REST endpoint for saving data.
 	add_action( 'rest_api_init', 'd5_extension_example_modals_register_rest_routes' );
@@ -84,6 +84,9 @@ function d5_extension_example_modals_add_settings( $settings ) {
 		'focusKeyword' => '',
 	) );
 	$settings['postKeywordSettings'] = $post_keyword_data;
+
+	// Per-post showcase settings (post meta), hydrated using the page being edited.
+	$settings = d5_extension_example_modals_merge_modal_field_showcase_settings( $settings );
 
 	return $settings;
 }
@@ -126,6 +129,28 @@ function d5_extension_example_modals_register_rest_routes() {
 					'required'          => true,
 					'validate_callback' => 'd5_extension_example_modals_validate_post_keyword_data',
 					'sanitize_callback' => 'd5_extension_example_modals_sanitize_post_keyword_data',
+				),
+			),
+		)
+	);
+
+	register_rest_route(
+		'divi/v1',
+		'/modal-field-showcase-settings/update',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'd5_extension_example_modals_save_modal_field_showcase_data',
+			'permission_callback' => 'd5_extension_example_modals_save_permission',
+			'args'                => array(
+				'postId' => array(
+					'required'          => true,
+					'validate_callback' => 'd5_extension_example_modals_validate_showcase_post_id',
+					'sanitize_callback' => 'absint',
+				),
+				'data'   => array(
+					'required'          => true,
+					'validate_callback' => 'd5_extension_example_modals_validate_modal_field_showcase_data',
+					'sanitize_callback' => 'd5_extension_example_modals_sanitize_modal_field_showcase_data',
 				),
 			),
 		)
@@ -304,6 +329,259 @@ function d5_extension_example_modals_save_post_keyword_data( $request ) {
 }
 
 /**
+ * Default structure for modal field showcase settings (stored in post meta).
+ *
+ * @since 0.1.0
+ *
+ * @return array<string,mixed>
+ */
+function d5_extension_example_modals_default_modal_field_showcase_settings() {
+	return array(
+		'labelPrefix'    => '',
+		'notes'          => '',
+		'enablePolish'   => false,
+		'accentColor'    => '',
+		'layoutDensity'  => 'comfortable',
+		'emphasisScale'  => '50',
+		'readingMeasure' => '45em',
+		'sectionPadding' => array(
+			'top'              => '',
+			'right'            => '',
+			'bottom'           => '',
+			'left'             => '',
+			'syncHorizontal'   => 'off',
+			'syncVertical'     => 'off',
+		),
+		'cornerRadius'   => array(
+			'topLeft'     => '',
+			'topRight'    => '',
+			'bottomLeft'  => '',
+			'bottomRight' => '',
+			'sync'        => 'off',
+		),
+		'borderAll'      => array(
+			'style' => 'solid',
+			'color' => '#333333',
+			'width' => '1px',
+		),
+		'triToggle'      => array(
+			'a' => false,
+			'b' => false,
+			'c' => false,
+		),
+	);
+}
+
+/**
+ * REST validate: positive post ID for showcase save.
+ *
+ * @since 0.1.0
+ *
+ * @param mixed $post_id Raw post ID.
+ * @return bool
+ */
+function d5_extension_example_modals_validate_showcase_post_id( $post_id ) {
+	return is_numeric( $post_id ) && (int) $post_id > 0;
+}
+
+/**
+ * REST validate: showcase payload is a non-empty array.
+ *
+ * @since 0.1.0
+ *
+ * @param mixed $data Payload.
+ * @return bool
+ */
+function d5_extension_example_modals_validate_modal_field_showcase_data( $data ) {
+	return is_array( $data );
+}
+
+/**
+ * Sanitize showcase payload (whitelist keys for post meta).
+ *
+ * @since 0.1.0
+ *
+ * @param mixed $data Raw data.
+ * @return array<string,mixed>
+ */
+function d5_extension_example_modals_sanitize_modal_field_showcase_data( $data ) {
+	$defaults = d5_extension_example_modals_default_modal_field_showcase_settings();
+	$input    = is_array( $data ) ? $data : array();
+	$out      = $defaults;
+
+	if ( isset( $input['labelPrefix'] ) && is_string( $input['labelPrefix'] ) ) {
+		$out['labelPrefix'] = sanitize_text_field( $input['labelPrefix'] );
+	}
+
+	if ( isset( $input['notes'] ) && is_string( $input['notes'] ) ) {
+		$out['notes'] = sanitize_textarea_field( $input['notes'] );
+	}
+
+	if ( isset( $input['enablePolish'] ) ) {
+		$out['enablePolish'] = (bool) $input['enablePolish'];
+	}
+
+	if ( isset( $input['accentColor'] ) && is_string( $input['accentColor'] ) ) {
+		$out['accentColor'] = sanitize_text_field( $input['accentColor'] );
+	}
+
+	if ( isset( $input['layoutDensity'] ) && is_string( $input['layoutDensity'] ) ) {
+		$allowed = array( 'comfortable', 'compact', 'spacious' );
+		$val     = sanitize_key( $input['layoutDensity'] );
+		if ( in_array( $val, $allowed, true ) ) {
+			$out['layoutDensity'] = $val;
+		}
+	}
+
+	if ( isset( $input['emphasisScale'] ) && is_string( $input['emphasisScale'] ) ) {
+		$out['emphasisScale'] = sanitize_text_field( $input['emphasisScale'] );
+	}
+
+	if ( isset( $input['readingMeasure'] ) && is_string( $input['readingMeasure'] ) ) {
+		$out['readingMeasure'] = sanitize_text_field( $input['readingMeasure'] );
+	}
+
+	if ( isset( $input['sectionPadding'] ) && is_array( $input['sectionPadding'] ) ) {
+		$sp = $input['sectionPadding'];
+		foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
+			if ( isset( $sp[ $side ] ) && is_string( $sp[ $side ] ) ) {
+				$out['sectionPadding'][ $side ] = sanitize_text_field( $sp[ $side ] );
+			}
+		}
+		foreach ( array( 'syncHorizontal', 'syncVertical' ) as $sync_key ) {
+			if ( isset( $sp[ $sync_key ] ) && is_string( $sp[ $sync_key ] ) ) {
+				$sync_val = sanitize_key( $sp[ $sync_key ] );
+				$out['sectionPadding'][ $sync_key ] = in_array( $sync_val, array( 'on', 'off' ), true ) ? $sync_val : 'off';
+			}
+		}
+	}
+
+	if ( isset( $input['cornerRadius'] ) && is_array( $input['cornerRadius'] ) ) {
+		$cr = $input['cornerRadius'];
+		foreach ( array( 'topLeft', 'topRight', 'bottomLeft', 'bottomRight' ) as $k ) {
+			if ( isset( $cr[ $k ] ) && is_string( $cr[ $k ] ) ) {
+				$out['cornerRadius'][ $k ] = sanitize_text_field( $cr[ $k ] );
+			}
+		}
+		if ( isset( $cr['sync'] ) && is_string( $cr['sync'] ) ) {
+			$s = sanitize_key( $cr['sync'] );
+			$out['cornerRadius']['sync'] = in_array( $s, array( 'on', 'off' ), true ) ? $s : 'off';
+		}
+	}
+
+	if ( isset( $input['borderAll'] ) && is_array( $input['borderAll'] ) ) {
+		$b = $input['borderAll'];
+		if ( isset( $b['style'] ) && is_string( $b['style'] ) ) {
+			$st = sanitize_key( $b['style'] );
+			if ( in_array( $st, array( 'solid', 'dashed', 'dotted', 'none' ), true ) ) {
+				$out['borderAll']['style'] = $st;
+			}
+		}
+		if ( isset( $b['color'] ) && is_string( $b['color'] ) ) {
+			$out['borderAll']['color'] = sanitize_text_field( $b['color'] );
+		}
+		if ( isset( $b['width'] ) && is_string( $b['width'] ) ) {
+			$out['borderAll']['width'] = sanitize_text_field( $b['width'] );
+		}
+	}
+
+	if ( isset( $input['triToggle'] ) && is_array( $input['triToggle'] ) ) {
+		$t = $input['triToggle'];
+		foreach ( array( 'a', 'b', 'c' ) as $bit ) {
+			if ( array_key_exists( $bit, $t ) ) {
+				$out['triToggle'][ $bit ] = (bool) $t[ $bit ];
+			}
+		}
+	}
+
+	return $out;
+}
+
+/**
+ * Convert stored PHP row to client settings (Toggle expects on/off strings).
+ *
+ * @since 0.1.0
+ *
+ * @param array<string,mixed> $row Merged row.
+ * @return array<string,mixed>
+ */
+function d5_extension_example_modals_showcase_php_to_client( array $row ) {
+	$row['enablePolish'] = ! empty( $row['enablePolish'] ) ? 'on' : 'off';
+
+	return $row;
+}
+
+/**
+ * Merge showcase settings from post meta into Visual Builder settings data.
+ *
+ * @since 0.1.0
+ *
+ * @param array<string,mixed> $settings Settings array.
+ * @return array<string,mixed>
+ */
+function d5_extension_example_modals_merge_modal_field_showcase_settings( $settings ) {
+	if ( ! is_array( $settings ) ) {
+		return $settings;
+	}
+
+	$defaults = d5_extension_example_modals_default_modal_field_showcase_settings();
+	$post_id  = 0;
+
+	if ( isset( $settings['currentPage']['id'] ) && is_numeric( $settings['currentPage']['id'] ) ) {
+		$post_id = (int) $settings['currentPage']['id'];
+	}
+
+	$stored = array();
+
+	if ( $post_id > 0 ) {
+		$meta = get_post_meta( $post_id, '_d5_modal_field_showcase_v1', true );
+		if ( is_array( $meta ) ) {
+			$stored = $meta;
+		}
+	}
+
+	$merged = array_merge( $defaults, $stored );
+
+	$settings['modalFieldShowcaseSettings'] = d5_extension_example_modals_showcase_php_to_client( $merged );
+
+	return $settings;
+}
+
+/**
+ * Save showcase settings to post meta.
+ *
+ * @since 0.1.0
+ *
+ * @param WP_REST_Request $request Request.
+ * @return WP_REST_Response|WP_Error
+ */
+function d5_extension_example_modals_save_modal_field_showcase_data( $request ) {
+	$post_id = (int) $request->get_param( 'postId' );
+	$data    = $request->get_param( 'data' );
+
+	if ( $post_id < 1 || ! current_user_can( 'edit_post', $post_id ) ) {
+		return new WP_Error(
+			'forbidden',
+			'Invalid post or insufficient permissions',
+			array( 'status' => 403 )
+		);
+	}
+
+	$sanitized = is_array( $data ) ? d5_extension_example_modals_sanitize_modal_field_showcase_data( $data ) : d5_extension_example_modals_default_modal_field_showcase_settings();
+
+	update_post_meta( $post_id, '_d5_modal_field_showcase_v1', $sanitized );
+
+	return new WP_REST_Response(
+		array(
+			'success' => true,
+			'message' => 'Modal field showcase data saved to post meta',
+			'data'    => d5_extension_example_modals_showcase_php_to_client( $sanitized ),
+		),
+		200
+	);
+}
+
+/**
  * Load example modal implementations.
  *
  * @since 0.1.0
@@ -323,11 +601,11 @@ function d5_extension_example_modals_load_examples() {
 		require_once $post_keyword_file;
 	}
 
-	// Future examples can be loaded here.
-	// $future_example_file = $examples_dir . 'future-example/example.php';
-	// if ( file_exists( $future_example_file ) ) {
-	// require_once $future_example_file;
-	// }.
+	// Modal Field Showcase (tabs, search, footer, field-library, post meta).
+	$field_showcase_file = $examples_dir . 'modal-field-showcase/d5-extension-example-modal-field-showcase.php';
+	if ( file_exists( $field_showcase_file ) ) {
+		require_once $field_showcase_file;
+	}
 }
 
 /**

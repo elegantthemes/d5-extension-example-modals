@@ -5,8 +5,8 @@
   "main": "d5-extension-example-modals.php",
   "scripts": {
     "start": "cd module-visibility-manager && npm run start",
-    "build": "cd module-visibility-manager && npm run build",
-    "build:dev": "cd module-visibility-manager && npm run build:dev",
+    "build": "npm run build --prefix module-visibility-manager && npm run build --prefix post-keyword-manager && npm run build --prefix modal-field-showcase",
+    "build:dev": "npm run build:dev --prefix module-visibility-manager && npm run build:dev --prefix post-keyword-manager && npm run build:dev --prefix modal-field-showcase",
     "zip": "gulp zip"
   },
   "keywords": [

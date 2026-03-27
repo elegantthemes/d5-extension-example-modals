@@ -36,15 +36,21 @@ An **educational tutorial repository** that teaches developers how to create cus
 ### Tutorial Setup
 
 1. **Clone this educational repository** to your local WordPress development environment
-2. **Install dependencies**: `npm install` (in module-visibility-manager/)
-3. **Build the tutorial example**: `npm run build`
+2. **Install dependencies** in each example package that you plan to build (each has its own `package.json`):
+   - `module-visibility-manager/`
+   - `post-keyword-manager/`
+   - `modal-field-showcase/`
+3. **Build all examples from the plugin root**: `npm run build` (runs webpack in all three folders)
 4. **Activate** in WordPress Admin → Plugins to see it in action
 
-### Explore the Working Example
+### Explore the Working Examples
 
-1. **Open Divi Visual Builder** on any page to begin exploring
-2. **Find the "Module Visibility" button** in the builder toolbar
-3. **Click to open** the modal and see the tutorial in action
+1. **Open Divi Visual Builder** on a **saved** post (post ID required for the showcase meta example)
+2. **Builder toolbar buttons** (examples):
+   - **Module Visibility** — options-based persistence, module list
+   - **Post Keywords** — options-based persistence, content hooks demo
+   - **Field showcase** — tabs, search, footer save/discard, field-library samples, **post meta** persistence
+3. **Click a button** to open the corresponding modal
 
 #### What You'll Experience:
 
@@ -60,24 +66,13 @@ An **educational tutorial repository** that teaches developers how to create cus
 ```
 d5-extension-example-modals/
 ├── d5-extension-example-modals.php
-└── module-visibility-manager/
-    ├── d5-extension-example-modal-module-visibility.php
-    ├── package.json
-    ├── webpack.config.js
-    ├── src/
-    │   ├── index.jsx
-    │   ├── add-bar-builder-buttons.js
-    │   ├── custom-store.js
-    │   ├── hooks/
-    │   │   ├── index.js
-    │   │   └── use-reactive-module-filter.js
-    │   └── modal/
-    │       ├── component.jsx
-    │       └── module-visibility-list.jsx
-    └── build/
-        ├── bundle.js
-        └── add-bar-builder-buttons.js
+├── module-visibility-manager/   # Options API + custom store + module list modal
+├── post-keyword-manager/        # Options API + Post Keyword modal + VB hooks
+├── modal-field-showcase/        # Post meta + comprehensive modal UI (see README inside)
+└── (each subfolder: package.json, webpack.config.js, src/, build/, styles/)
 ```
+
+Deep dive for the third example: **`modal-field-showcase/README.md`** (issue checklist, field table, how to discover new field types in core).
 
 ### Learning Checkpoints - Study These Components
 
@@ -172,23 +167,23 @@ addFilter('divi.modalLibrary.addModule.moduleList', 'my-plugin',
 
 ### Build Process
 
-All build commands are now available from the root directory for better plugin architecture and scalability:
+Root scripts orchestrate **all three** example packages:
 
 ```bash
-# Development
-npm run start
-
-# Production build
+# Production build (module-visibility + post-keyword + modal-field-showcase)
 npm run build
 
-# Development build
+# Development builds (all three)
 npm run build:dev
+
+# Watch mode (module-visibility only — use per-folder npm run start for others)
+npm run start
 
 # Create distribution package
 npm run zip
 ```
 
-**Note**: The build commands delegate to the `module-visibility-manager/` subdirectory internally, but can be run from the root level for convenience.
+**Note:** Each subfolder owns its own `node_modules`. Run `npm install` inside a folder before building if webpack is missing. Fresh clones should install in all three packages once.
 
 #### Future Architecture Recommendation
 
