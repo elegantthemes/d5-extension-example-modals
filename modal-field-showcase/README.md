@@ -2,6 +2,43 @@
 
 Third example in **D5 Extension Example: Modals**. It complements **Module Visibility** (options + builder bar) and **Post Keyword** (options + hooks) with a **kitchen-sink modal** aimed at issue-style documentation: tabs, in-modal search, footer actions, collapsible groups, many `@divi/field-library` controls, a small custom React control, and **per-post** persistence via `post_meta`.
 
+## Package layout
+
+This folder is its **own webpack package** (local `package.json` + `node_modules`). PHP bootstrap is `d5-extension-example-modal-field-showcase.php`; REST and `divi_visual_builder_settings_data` merge live in the parent **`../d5-extension-example-modals.php`**.
+
+```
+modal-field-showcase/
+├── d5-extension-example-modal-field-showcase.php   # PackageBuildManager: bar script, bundle, CSS
+├── package.json
+├── webpack.config.js
+├── MODAL-TABS-PATTERN.md     # Notes on Tabs vs BodyPanelWrapper / `opened` pitfalls
+├── build/
+│   ├── bundle.js
+│   └── add-toolbar-button.js
+├── styles/
+│   └── bundle.css            # Extracted from `src/modal/showcase-body.css`
+└── src/
+    ├── index.jsx             # divi.modalLibrary.modalMapping
+    ├── add-toolbar-button.js
+    ├── constants.js          # Default settings + SHOWCASE_SETTING_KEY (must match PHP key)
+    ├── hooks/
+    │   ├── index.js
+    │   └── use-showcase-settings.js   # Draft, hydrate, REST save, divi/settings
+    ├── icons/
+    │   ├── index.js
+    │   ├── registerIcons.js
+    │   └── modal-field-showcase/
+    ├── utils/
+    │   ├── merge-spacing.js
+    │   └── merge-border-radius.js
+    └── modal/
+        ├── component.jsx     # WrapperContainer + Header; modalGroup / modalActiveTab wiring
+        ├── showcase-body.jsx # Tabs, SearchBar, groups, fields, Footer
+        └── showcase-body.css # field-showcase-* layout helpers
+```
+
+From the **plugin root**: `npm run build:modal-field-showcase` (after `npm run install:all` or `npm install` in this folder).
+
 ## Issue checklist mapping (#48965)
 
 | Request | How this example covers it |

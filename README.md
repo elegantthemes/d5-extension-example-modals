@@ -64,18 +64,22 @@ An **educational tutorial repository** that teaches developers how to create cus
 
 ## 🏗️ **Tutorial Deep Dive**
 
-### File Structure
+### File structure
 
 ```
 d5-extension-example-modals/
-├── d5-extension-example-modals.php
-├── module-visibility-manager/   # Options API + custom store + module list modal
-├── post-keyword-manager/        # Options API + Post Keyword modal + VB hooks
-├── modal-field-showcase/        # Post meta + comprehensive modal UI (see README inside)
-└── (each subfolder: package.json, webpack.config.js, src/, build/, styles/)
+├── d5-extension-example-modals.php   # Loads examples, REST, divi_visual_builder_settings_data
+├── package.json                      # Root: gulp zip + install/build orchestration for all three
+├── module-visibility-manager/        # Example 1 — see README inside for tree
+├── post-keyword-manager/             # Example 2 — see README inside for tree
+└── modal-field-showcase/             # Example 3 — see README inside for tree
 ```
 
-Deep dive for the third example: **`modal-field-showcase/README.md`** (issue checklist, field table, how to discover new field types in core).
+Each example folder is an **independent** npm package (`package.json`, `webpack.config.js`, `src/`, `build/`, optional `styles/`). **Per-folder READMEs** describe sources, outputs, and how that example differs from the others:
+
+- **`module-visibility-manager/README.md`**
+- **`post-keyword-manager/README.md`** (long-form hook tutorial + layout above the fold)
+- **`modal-field-showcase/README.md`** (field showcase + layout + issue checklist)
 
 ### Learning Checkpoints - Study These Components
 
