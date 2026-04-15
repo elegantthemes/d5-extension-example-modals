@@ -134,6 +134,7 @@ function d5_extension_example_modals_register_rest_routes() {
 		)
 	);
 
+	// Modal Field Showcase settings endpoint.
 	register_rest_route(
 		'divi/v1',
 		'/modal-field-showcase-settings/update',
@@ -601,6 +602,12 @@ function d5_extension_example_modals_load_examples() {
 		require_once $post_keyword_file;
 	}
 
+	// Future examples can be loaded here.
+	// $future_example_file = $examples_dir . 'future-example/example.php';
+	// if ( file_exists( $future_example_file ) ) {
+	// require_once $future_example_file;
+	// }.
+	
 	// Modal Field Showcase (tabs, search, footer, field-library, post meta).
 	$field_showcase_file = $examples_dir . 'modal-field-showcase/d5-extension-example-modal-field-showcase.php';
 	if ( file_exists( $field_showcase_file ) ) {

@@ -8,6 +8,7 @@ import { Header, WrapperContainer } from '@divi/modal';
 
 import { ShowcaseBody } from './showcase-body';
 
+// Same string as the modal map and toolbar button so `modalName` / store selectors resolve one logical modal.
 const MODAL_NAME = 'divi/modal-field-showcase';
 
 /** Stable fallback when the modal has no `group` in the library store yet. */
@@ -52,7 +53,7 @@ export const ModalFieldShowcaseModal = props => {
         resizable
         centered={false}
         modalName={MODAL_NAME}
-        modalActiveTab="d5-modal-field-showcase"
+        modalActiveTab="field-showcase-panel"
         modalGroup={modalGroup}
         bodySiblingHeight={bodySiblingHeight}
       >

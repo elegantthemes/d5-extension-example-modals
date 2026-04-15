@@ -37,6 +37,7 @@ import './showcase-body.css';
 const TAB_CONTENT = 'content';
 const TAB_APPEARANCE = 'appearance';
 
+// Local filter for tutorial clarity: core inspector uses `useSettingsSearch` + the modal tab store; this example keeps search state in React and hides whole `GroupContainer` blocks when nothing matches.
 /**
  * @param {Object} props Props.
  * @param {string} props.query Search query.
@@ -81,19 +82,19 @@ const TriToggleCluster = ({ value, onChange }) => {
   const summary = `A:${value.a ? 1 : 0} B:${value.b ? 1 : 0} C:${value.c ? 1 : 0}`;
 
   return (
-    <div className="d5-showcase-tri-toggle">
-      <p className="d5-showcase-tri-toggle__summary" aria-live="polite">
+    <div className="field-showcase-tri-toggle">
+      <p className="field-showcase-tri-toggle__summary" aria-live="polite">
         {summary}
       </p>
-      <div className="d5-showcase-tri-toggle__buttons">
+      <div className="field-showcase-tri-toggle__buttons">
         {['a', 'b', 'c'].map(key => (
           <button
             key={key}
             type="button"
             className={
               value[key]
-                ? 'd5-showcase-tri-toggle__btn d5-showcase-tri-toggle__btn--on'
-                : 'd5-showcase-tri-toggle__btn'
+                ? 'field-showcase-tri-toggle__btn field-showcase-tri-toggle__btn--on'
+                : 'field-showcase-tri-toggle__btn'
             }
             onClick={toggle(key)}
           >
@@ -111,6 +112,7 @@ const TriToggleCluster = ({ value, onChange }) => {
  * @returns {React.ReactElement} Element.
  */
 export const ShowcaseBody = () => {
+  // `updateDraft` = in-memory edits; `saveDraft` / `discardDraft` = commit or revert against the server-backed baseline (see `use-showcase-settings.js`).
   const {
     draft,
     updateDraft,
@@ -119,6 +121,7 @@ export const ShowcaseBody = () => {
     discardDraft,
   } = useShowcaseSettings();
 
+  // Pure presentation state: not persisted; tabs + search reset when the modal closes because the component unmounts.
   const [activeTab, setActiveTab] = useState(TAB_CONTENT);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
@@ -134,6 +137,7 @@ export const ShowcaseBody = () => {
     [draft.borderAll],
   );
 
+  // `Footer` expects a stable descriptor list; memo avoids re-creating closures on every render when `draft` changes.
   const footerButtons = useMemo(
     () => [
       {
@@ -159,6 +163,7 @@ export const ShowcaseBody = () => {
 
   return (
     <>
+      {/* @divi/modal — Tabs: primary navigation between Content and Appearance field sets. */}
       <Tabs>
         <Tab active={TAB_CONTENT === activeTab} onClick={() => setActiveTab(TAB_CONTENT)}>
           {__('Content & labels', 'et_builder')}
@@ -168,18 +173,20 @@ export const ShowcaseBody = () => {
         </Tab>
       </Tabs>
       <BodyContainer>
-        <PanelContainer id="d5-modal-field-showcase" opened>
-          <div className="d5-showcase-infobox" role="note">
-            <div className="d5-showcase-infobox__action">
+        <PanelContainer id="field-showcase-panel" opened>
+          {/* HelpButton (with caption): supported alternative to a bespoke “info box” component. */}
+          <div className="field-showcase-infobox" role="note">
+            <div className="field-showcase-infobox__action">
               <HelpButton onHelpClick={() => { }} />
             </div>
-            <p className="d5-showcase-infobox__text">
+            <p className="field-showcase-infobox__text">
               {__(
                 'HelpButton is for demo. Connect onHelpClick to your help action.',
                 'et_builder',
               )}
             </p>
           </div>
+          {/* DescriptionText: contextual copy when the layout is not persisted yet (no post ID). */}
           {!postId ? (
             <DescriptionText>
               {__(
@@ -188,6 +195,7 @@ export const ShowcaseBody = () => {
               )}
             </DescriptionText>
           ) : null}
+          {/* SearchBar: drives `searchQuery`; `groupVisible` hides whole groups when labels/keywords do not match. */}
           <SearchBar
             placeholder={__('Filter settings…', 'et_builder')}
             searchInputRef={searchInputRef}
@@ -202,6 +210,7 @@ export const ShowcaseBody = () => {
             }
             hidden={TAB_CONTENT !== activeTab}
           >
+            {/* --- Tab "Content & labels": Text, TextArea --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -209,7 +218,8 @@ export const ShowcaseBody = () => {
               title: 'Labels & copy',
               keywords: ['label', 'text', 'textarea', 'notes', 'prefix', 'copy'],
             }) ? (
-              <GroupContainer id="d5-showcase-copy" title={__('Labels & copy', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-copy" title={__('Labels & copy', 'et_builder')}>
+                {/* Field: Text (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Label prefix (Text)', 'et_builder')}
                   description={__('Prepended to generated placeholders in this tutorial narrative.', 'et_builder')}
@@ -225,6 +235,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: TextArea (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Design notes (TextArea)', 'et_builder')}
                   description={__('Longer copy for collaborators.', 'et_builder')}
@@ -242,6 +253,7 @@ export const ShowcaseBody = () => {
                 </FieldWrapper>
               </GroupContainer>
             ) : null}
+            {/* --- Same tab: Select, Toggle --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -249,7 +261,8 @@ export const ShowcaseBody = () => {
               title: 'Layout mode',
               keywords: ['layout', 'density', 'select', 'polish', 'toggle'],
             }) ? (
-              <GroupContainer id="d5-showcase-layout" title={__('Layout mode', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-layout" title={__('Layout mode', 'et_builder')}>
+                {/* Field: SelectContainer (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Layout density (Select)', 'et_builder')}
                   description={__('Static options map like module.json select fields.', 'et_builder')}
@@ -270,6 +283,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: Toggle (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Enable polish pass (Toggle)', 'et_builder')}
                   description={__('Example on/off value persisted as boolean server-side.', 'et_builder')}
@@ -296,6 +310,7 @@ export const ShowcaseBody = () => {
             }
             hidden={TAB_APPEARANCE !== activeTab}
           >
+            {/* --- Tab "Appearance": ColorPicker, Select, Range, BorderStylesPreview --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -303,7 +318,8 @@ export const ShowcaseBody = () => {
               title: 'Color & border',
               keywords: ['accent', 'color', 'border', 'preview', 'shadow', 'stroke'],
             }) ? (
-              <GroupContainer id="d5-showcase-color-border" title={__('Color & border', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-color-border" title={__('Color & border', 'et_builder')}>
+                {/* Field: ColorPickerContainer (opens shared color UI like the inspector). */}
                 <FieldWrapper
                   label={__('Accent (ColorPicker)', 'et_builder')}
                   description={__('Hex or empty for transparent intent.', 'et_builder')}
@@ -321,6 +337,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: SelectContainer (border style options). */}
                 <FieldWrapper
                   label={__('Border style (Select)', 'et_builder')}
                   description={__('Feeds the read-only BorderStylesPreview below.', 'et_builder')}
@@ -345,6 +362,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: ColorPickerContainer (second picker: border stroke color). */}
                 <FieldWrapper
                   label={__('Border color (ColorPicker)', 'et_builder')}
                 >
@@ -364,6 +382,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: RangeContainer (numeric range with units; here border width). */}
                 <FieldWrapper
                   label={__('Border width (Range)', 'et_builder')}
                   description={__('Standalone shadow fields are module-bound; this preview stands in for stroke weight.', 'et_builder')}
@@ -387,6 +406,7 @@ export const ShowcaseBody = () => {
                     cssProperty="border-width"
                   />
                 </FieldWrapper>
+                {/* Field: BorderStylesPreview (read-only composite preview from border state above). */}
                 <FieldWrapper
                   label={__('Border preview (BorderStylesPreview)', 'et_builder')}
                   description={__('Read-only preview; edit using the fields above.', 'et_builder')}
@@ -395,6 +415,7 @@ export const ShowcaseBody = () => {
                 </FieldWrapper>
               </GroupContainer>
             ) : null}
+            {/* --- Spacing, BorderRadius --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -402,7 +423,8 @@ export const ShowcaseBody = () => {
               title: 'Spacing & radius',
               keywords: ['spacing', 'padding', 'margin', 'radius', 'corner'],
             }) ? (
-              <GroupContainer id="d5-showcase-spacing" title={__('Spacing & radius', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-spacing" title={__('Spacing & radius', 'et_builder')}>
+                {/* Field: Spacing (@divi/field-library); merges partial onChange via helper. */}
                 <FieldWrapper
                   label={__('Section padding (Spacing)', 'et_builder')}
                   description={__('Uses merge helper for incremental onChange payloads.', 'et_builder')}
@@ -427,6 +449,7 @@ export const ShowcaseBody = () => {
                     }}
                   />
                 </FieldWrapper>
+                {/* Field: BorderRadius (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Corner radius (BorderRadius)', 'et_builder')}
                 >
@@ -450,6 +473,7 @@ export const ShowcaseBody = () => {
                 </FieldWrapper>
               </GroupContainer>
             ) : null}
+            {/* --- Range (again), NumericInput --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -457,7 +481,8 @@ export const ShowcaseBody = () => {
               title: 'Fine tuning',
               keywords: ['emphasis', 'range', 'reading', 'numeric', 'measure'],
             }) ? (
-              <GroupContainer id="d5-showcase-fine" title={__('Fine tuning', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-fine" title={__('Fine tuning', 'et_builder')}>
+                {/* Field: RangeContainer (percentage emphasis). */}
                 <FieldWrapper
                   label={__('Emphasis scale (Range)', 'et_builder')}
                   description={__('0–100 for decorative weight.', 'et_builder')}
@@ -478,6 +503,7 @@ export const ShowcaseBody = () => {
                     defaultUnit="%"
                   />
                 </FieldWrapper>
+                {/* Field: NumericInput (@divi/field-library). */}
                 <FieldWrapper
                   label={__('Reading measure (NumericInput)', 'et_builder')}
                   description={__('Max line width in em units.', 'et_builder')}
@@ -498,6 +524,7 @@ export const ShowcaseBody = () => {
                 </FieldWrapper>
               </GroupContainer>
             ) : null}
+            {/* --- Custom control: plain React (not field-library) --- */}
             {groupVisible({
               query: q,
               activeTab,
@@ -505,7 +532,7 @@ export const ShowcaseBody = () => {
               title: 'Custom control',
               keywords: ['custom', 'toggle', 'tri', 'bit', 'flags'],
             }) ? (
-              <GroupContainer id="d5-showcase-custom" title={__('Custom control', 'et_builder')}>
+              <GroupContainer id="field-showcase-group-custom" title={__('Custom control', 'et_builder')}>
                 <FieldWrapper
                   label={__('Three independent toggles', 'et_builder')}
                   description={__(
@@ -513,6 +540,7 @@ export const ShowcaseBody = () => {
                     'et_builder',
                   )}
                 >
+                  {/* TriToggleCluster: bespoke buttons + local state shape (see component above). */}
                   <TriToggleCluster
                     value={draft.triToggle}
                     onChange={next => {
@@ -528,6 +556,7 @@ export const ShowcaseBody = () => {
           </div>
         </PanelContainer>
       </BodyContainer>
+      {/* Footer: primary/secondary actions wired in `footerButtons` (save hits REST + `divi/settings`). */}
       <Footer buttons={footerButtons} />
     </>
   );

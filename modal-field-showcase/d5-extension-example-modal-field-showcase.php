@@ -22,6 +22,7 @@ define( 'D5_MODAL_FIELD_SHOWCASE_URL', plugin_dir_url( __FILE__ ) );
  */
 function d5_modal_field_showcase_enqueue_assets() {
 	if ( et_core_is_fb_enabled() && et_builder_d5_enabled() ) {
+		// Builder bar script: VB app iframe only (`enqueue_app_window`), where the bar is rendered.
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
 			[
 				'name'    => 'd5-modal-field-showcase-toolbar-button',
@@ -41,6 +42,7 @@ function d5_modal_field_showcase_enqueue_assets() {
 			]
 		);
 
+		// Modal CSS: top window so preview chrome matches other Divi modals; the script bundle stays app-window below.
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
 			[
 				'name'    => 'd5-modal-field-showcase-bundle-style',
@@ -54,6 +56,7 @@ function d5_modal_field_showcase_enqueue_assets() {
 			]
 		);
 
+		// Main bundle: modal UI + `divi.modalLibrary.modalMapping` filter; runs in the app iframe like other VB extension scripts.
 		\ET\Builder\VisualBuilder\Assets\PackageBuildManager::register_package_build(
 			[
 				'name'    => 'd5-modal-field-showcase-bundle',

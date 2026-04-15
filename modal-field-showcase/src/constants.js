@@ -4,6 +4,7 @@
  * @since 0.1.0
  */
 
+// Must match the key added in PHP (`divi_visual_builder_settings_data`) so server hydration and `divi/settings` reads stay aligned.
 export const SHOWCASE_SETTING_KEY = 'modalFieldShowcaseSettings';
 
 export const getDefaultShowcaseSettings = () => ({

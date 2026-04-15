@@ -1,6 +1,11 @@
 /**
  * Merge BorderRadius incremental `onChange` payloads.
  *
+ * Simplified merge for local React state: `BorderRadius` passes `params.inputValue` with
+ * `{ value, side, sync }`. When sync is on, all corners share `value`; when off, only `side`
+ * updates. Full product wiring adds defaults, stricter validation, and store bridges; this file
+ * keeps the example self-contained.
+ *
  * @since 0.1.0
  *
  * @param {Object} prev Previous radius state.

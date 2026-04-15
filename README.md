@@ -36,11 +36,14 @@ An **educational tutorial repository** that teaches developers how to create cus
 ### Tutorial Setup
 
 1. **Clone this educational repository** to your local WordPress development environment
-2. **Install dependencies** in each example package that you plan to build (each has its own `package.json`):
-   - `module-visibility-manager/`
-   - `post-keyword-manager/`
-   - `modal-field-showcase/`
-3. **Build all examples from the plugin root**: `npm run build` (runs webpack in all three folders)
+2. **Install dependencies** (each example has its own `package.json` and `node_modules`):
+   - **All at once (recommended):** from the plugin root run `npm run install:all`.
+   - **Or only what you need:** `cd` into `module-visibility-manager/`, `post-keyword-manager/`, or `modal-field-showcase/` and run `npm install` there.
+3. **Build** from the plugin root:
+   - **All examples:** `npm run build` (stops if any package fails).
+   - **One example only** (avoids other packages’ errors blocking you):  
+     `npm run build:module-visibility` · `npm run build:post-keyword` · `npm run build:modal-field-showcase`  
+     Development builds: `npm run build:dev:module-visibility` (same pattern for the other two).
 4. **Activate** in WordPress Admin → Plugins to see it in action
 
 ### Explore the Working Examples
@@ -167,14 +170,23 @@ addFilter('divi.modalLibrary.addModule.moduleList', 'my-plugin',
 
 ### Build Process
 
-Root scripts orchestrate **all three** example packages:
+Root scripts orchestrate installs and builds. Each example still has its **own** `node_modules` (no npm workspaces), so installs stay isolated and webpack configs do not fight over hoisting.
 
 ```bash
-# Production build (module-visibility + post-keyword + modal-field-showcase)
+# Install dependencies in all three packages (one command from root)
+npm run install:all
+
+# Production build — all three (fails fast: first error stops the chain)
 npm run build
 
-# Development builds (all three)
+# Production build — one package only
+npm run build:module-visibility
+npm run build:post-keyword
+npm run build:modal-field-showcase
+
+# Development builds — all three or one at a time
 npm run build:dev
+npm run build:dev:modal-field-showcase
 
 # Watch mode (module-visibility only — use per-folder npm run start for others)
 npm run start
@@ -183,7 +195,7 @@ npm run start
 npm run zip
 ```
 
-**Note:** Each subfolder owns its own `node_modules`. Run `npm install` inside a folder before building if webpack is missing. Fresh clones should install in all three packages once.
+**Note:** You can always `cd` into one example folder and run `npm install` / `npm run build` there; root scripts are a convenience wrapper around `npm --prefix <folder>`.
 
 #### Future Architecture Recommendation
 

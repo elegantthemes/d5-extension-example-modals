@@ -5,8 +5,15 @@
   "main": "d5-extension-example-modals.php",
   "scripts": {
     "start": "cd module-visibility-manager && npm run start",
+    "install:all": "npm install --prefix module-visibility-manager && npm install --prefix post-keyword-manager && npm install --prefix modal-field-showcase",
     "build": "npm run build --prefix module-visibility-manager && npm run build --prefix post-keyword-manager && npm run build --prefix modal-field-showcase",
+    "build:module-visibility": "npm run build --prefix module-visibility-manager",
+    "build:post-keyword": "npm run build --prefix post-keyword-manager",
+    "build:modal-field-showcase": "npm run build --prefix modal-field-showcase",
     "build:dev": "npm run build:dev --prefix module-visibility-manager && npm run build:dev --prefix post-keyword-manager && npm run build:dev --prefix modal-field-showcase",
+    "build:dev:module-visibility": "npm run build:dev --prefix module-visibility-manager",
+    "build:dev:post-keyword": "npm run build:dev --prefix post-keyword-manager",
+    "build:dev:modal-field-showcase": "npm run build:dev --prefix modal-field-showcase",
     "zip": "gulp zip"
   },
   "keywords": [

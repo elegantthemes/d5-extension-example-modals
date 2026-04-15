@@ -1,7 +1,7 @@
 /* Modal Field Showcase — minimal layout helpers (modal chrome comes from Divi). */
 
 /* Info-style callout: compact copy + HelpButton (core `.et-vb-help-button` uses heavy padding). */
-.d5-showcase-infobox {
+.field-showcase-infobox {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -15,14 +15,14 @@
   box-sizing: border-box;
 }
 
-.d5-showcase-infobox__action {
+.field-showcase-infobox__action {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   line-height: 0;
 }
 
-.d5-showcase-infobox .et-vb-help-button {
+.field-showcase-infobox .et-vb-help-button {
   padding: 4px;
   margin: 0;
   min-height: 0;
@@ -30,11 +30,11 @@
   align-self: center;
 }
 
-.d5-showcase-infobox .et-vb-help-button .et-vb-icon--divi-help-circle {
+.field-showcase-infobox .et-vb-help-button .et-vb-icon--divi-help-circle {
   display: block;
 }
 
-.d5-showcase-infobox__text {
+.field-showcase-infobox__text {
   margin: 0;
   flex: 1;
   min-width: 0;
@@ -44,18 +44,18 @@
   opacity: 0.92;
 }
 
-.d5-showcase-tri-toggle__summary {
+.field-showcase-tri-toggle__summary {
   margin: 0 0 8px;
   font-family: monospace;
   font-size: 13px;
 }
 
-.d5-showcase-tri-toggle__buttons {
+.field-showcase-tri-toggle__buttons {
   display: flex;
   gap: 8px;
 }
 
-.d5-showcase-tri-toggle__btn {
+.field-showcase-tri-toggle__btn {
   min-width: 40px;
   padding: 6px 10px;
   border-radius: 3px;
@@ -65,7 +65,7 @@
   font-weight: 600;
 }
 
-.d5-showcase-tri-toggle__btn--on {
+.field-showcase-tri-toggle__btn--on {
   border-color: #2b87da;
   background: rgba(43, 135, 218, 0.15);
 }

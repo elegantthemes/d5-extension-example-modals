@@ -1,6 +1,7 @@
 import { registerBuilderBarButton } from '@divi/app-ui';
 import { dispatch, select } from '@divi/data';
 
+// Must match `name` in `divi.modalLibrary.modalMapping` (`src/index.jsx`) and `MODAL_NAME` in the modal shell so open/close targets the same modal instance.
 const MODAL_NAME = 'divi/modal-field-showcase';
 
 /**

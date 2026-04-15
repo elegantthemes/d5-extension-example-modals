@@ -1,7 +1,10 @@
 /**
  * Merge Spacing field incremental `onChange` payloads into stored padding state.
  *
- * Mirrors the intent of Divi's spacing field without importing private reducers.
+ * Simplified merge for local React state: handles `isSyncButtonClick` and per-side updates so
+ * linked horizontal/vertical padding matches what the `Spacing` field emits. Full module settings
+ * in Divi run through Immutable stores and extra guards against stale sync events; this helper
+ * omits that stack on purpose so the modal example stays small.
  *
  * @since 0.1.0
  *

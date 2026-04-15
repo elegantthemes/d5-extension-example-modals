@@ -36,21 +36,17 @@ Third example in **D5 Extension Example: Modals**. It complements **Module Visib
 
 ## Discovering more field types (three methods)
 
-1. **Field library index** — In the Divi theme repo, open  
-   `includes/builder-5/visual-builder/packages/field-library/src/components/index.ts`  
-   for named exports and the `map` object passed through the `divi.fieldLibrary.components.map` filter.
+1. **Field library index** — In your Divi 5 theme sources, browse the `@divi/field-library` package (or use your editor’s “go to definition” from an import) for named exports and the `map` object passed through the `divi.fieldLibrary.components.map` filter.
 
-2. **Runtime filter** — `addFilter('divi.fieldLibrary.components.map', ...)` to register or wrap field groups (same pattern core uses).
+2. **Runtime filter** — `addFilter('divi.fieldLibrary.components.map', ...)` to register or wrap field groups (same pattern Divi uses).
 
-3. **Production shapes** — Inspect `module.json` files under  
-   `includes/builder-5/visual-builder/packages/module-library/src/components/**/module.json`  
-   for real `name` / `props` / `type` combinations (e.g. CTA module).
+3. **Production shapes** — Inspect shipped `module.json` definitions under `@divi/module-library` in the theme for real `name` / `props` / `type` combinations (e.g. CTA module).
 
-## Core references for comparison
+## References for comparison
 
-- Modal layout primitives: `includes/builder-5/visual-builder/packages/modal/src/components/index.ts`
-- Command center (info-style UI in core): `modal-library` command center component (search for `et-vb-info-box` in core if you need markup parity).
-- Inspector-style search hook: `BodyPanelWrapper` / `useSettingsSearch` (re-exported from `@divi/modal`; implementation is tied to module/settings stores — this plugin uses **local filter state** on purpose so the example stays self-contained).
+- Modal layout primitives: exported from `@divi/modal` (see package entry / type definitions in the theme).
+- Command center (info-style UI in Divi): `modal-library` command center; search Divi sources for `et-vb-info-box` if you need markup parity.
+- Inspector-style search hook: `BodyPanelWrapper` / `useSettingsSearch` (re-exported from `@divi/modal`; tied to module/settings stores — this plugin uses **local filter state** on purpose so the example stays self-contained).
 
 ## Persistence
 
@@ -60,7 +56,7 @@ Third example in **D5 Extension Example: Modals**. It complements **Module Visib
 
 ## `GroupContainer` / accordion behavior
 
-`GroupContainer` reads open/closed state from **`modalWrapperContext`**, which `Wrapper` fills from the **`modalGroup`** prop. That object must stay in sync with **`select('divi/modal-library').getModal(modalName).group`**. If you omit it, title clicks still dispatch `openGroup`, but the UI keeps the default `{}`, so with **Group Settings Into Closed Toggles** enabled in preferences every group stays collapsed. This example passes `modalGroup` and sets **`modalActiveTab`** to the same id as **`PanelContainer`** (`d5-modal-field-showcase`).
+`GroupContainer` reads open/closed state from **`modalWrapperContext`**, which `Wrapper` fills from the **`modalGroup`** prop. That object must stay in sync with **`select('divi/modal-library').getModal(modalName).group`**. If you omit it, title clicks still dispatch `openGroup`, but the UI keeps the default `{}`, so with **Group Settings Into Closed Toggles** enabled in preferences every group stays collapsed. This example passes `modalGroup` and sets **`modalActiveTab`** to the same id as **`PanelContainer`** (`field-showcase-panel`).
 
 ## Build
 
