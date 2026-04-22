@@ -2,6 +2,38 @@
 
 An **educational example** demonstrating how to integrate with Divi 5 hooks for real-time page settings updates and content analysis. This example shows third-party developers how to receive real-time content updates, validate page settings (title, excerpt, featured image alt/title), and manage post metadata.
 
+## Package layout
+
+This folder is its **own webpack package** (local `package.json` + `node_modules`). The parent plugin loads `d5-extension-example-modal-post-keyword.php` from the root `d5-extension-example-modals.php` file.
+
+```
+post-keyword-manager/
+├── d5-extension-example-modal-post-keyword.php   # Registers VB scripts (PackageBuildManager)
+├── package.json
+├── webpack.config.js
+├── build/                    # Webpack output (`npm run build` here or from plugin root)
+│   ├── bundle.js
+│   └── add-toolbar-button.js
+├── styles/
+│   └── bundle.css            # Extracted modal styles (MiniCssExtract)
+└── src/
+    ├── index.jsx             # Modal map + `et.builder.content.change` / page settings hooks + effects
+    ├── add-toolbar-button.js # Builder bar entry
+    ├── hooks/
+    │   ├── index.js
+    │   └── use-keyword-data.js # REST + divi/settings wiring for keyword state
+    ├── icons/
+    │   ├── index.js
+    │   ├── registerIcons.js
+    │   └── post-keyword/
+    └── modal/
+        ├── component.jsx     # Modal shell
+        ├── keyword-form.jsx  # FieldWrapper + Text, etc.
+        └── keyword-form.css
+```
+
+From the **plugin root** you can install all examples once (`npm run install:all`) then build only this one: `npm run build:post-keyword`. The commands below use **this folder** directly (`yarn` or `npm` — both work if you install deps first).
+
 ## 🎯 **What You'll Learn**
 
 ### ✅ **Hook Integration**

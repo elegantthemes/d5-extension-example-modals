@@ -36,15 +36,24 @@ An **educational tutorial repository** that teaches developers how to create cus
 ### Tutorial Setup
 
 1. **Clone this educational repository** to your local WordPress development environment
-2. **Install dependencies**: `npm install` (in module-visibility-manager/)
-3. **Build the tutorial example**: `npm run build`
+2. **Install dependencies** (each example has its own `package.json` and `node_modules`):
+   - **All at once (recommended):** from the plugin root run `npm run install:all`.
+   - **Or only what you need:** `cd` into `module-visibility-manager/`, `post-keyword-manager/`, or `modal-field-showcase/` and run `npm install` there.
+3. **Build** from the plugin root:
+   - **All examples:** `npm run build` (stops if any package fails).
+   - **One example only** (avoids other packages’ errors blocking you):  
+     `npm run build:module-visibility` · `npm run build:post-keyword` · `npm run build:modal-field-showcase`  
+     Development builds: `npm run build:dev:module-visibility` (same pattern for the other two).
 4. **Activate** in WordPress Admin → Plugins to see it in action
 
-### Explore the Working Example
+### Explore the Working Examples
 
-1. **Open Divi Visual Builder** on any page to begin exploring
-2. **Find the "Module Visibility" button** in the builder toolbar
-3. **Click to open** the modal and see the tutorial in action
+1. **Open Divi Visual Builder** on a **saved** post (post ID required for the showcase meta example)
+2. **Builder toolbar buttons** (examples):
+   - **Module Visibility** — options-based persistence, module list
+   - **Post Keywords** — options-based persistence, content hooks demo
+   - **Field showcase** — tabs, search, footer save/discard, field-library samples, **post meta** persistence
+3. **Click a button** to open the corresponding modal
 
 #### What You'll Experience:
 
@@ -55,29 +64,22 @@ An **educational tutorial repository** that teaches developers how to create cus
 
 ## 🏗️ **Tutorial Deep Dive**
 
-### File Structure
+### File structure
 
 ```
 d5-extension-example-modals/
-├── d5-extension-example-modals.php
-└── module-visibility-manager/
-    ├── d5-extension-example-modal-module-visibility.php
-    ├── package.json
-    ├── webpack.config.js
-    ├── src/
-    │   ├── index.jsx
-    │   ├── add-bar-builder-buttons.js
-    │   ├── custom-store.js
-    │   ├── hooks/
-    │   │   ├── index.js
-    │   │   └── use-reactive-module-filter.js
-    │   └── modal/
-    │       ├── component.jsx
-    │       └── module-visibility-list.jsx
-    └── build/
-        ├── bundle.js
-        └── add-bar-builder-buttons.js
+├── d5-extension-example-modals.php   # Loads examples, REST, divi_visual_builder_settings_data
+├── package.json                      # Root: gulp zip + install/build orchestration for all three
+├── module-visibility-manager/        # Example 1 — see README inside for tree
+├── post-keyword-manager/             # Example 2 — see README inside for tree
+└── modal-field-showcase/             # Example 3 — see README inside for tree
 ```
+
+Each example folder is an **independent** npm package (`package.json`, `webpack.config.js`, `src/`, `build/`, optional `styles/`). **Per-folder READMEs** describe sources, outputs, and how that example differs from the others:
+
+- **`module-visibility-manager/README.md`**
+- **`post-keyword-manager/README.md`** (long-form hook tutorial + layout above the fold)
+- **`modal-field-showcase/README.md`** (field showcase + layout + issue checklist)
 
 ### Learning Checkpoints - Study These Components
 
@@ -172,23 +174,32 @@ addFilter('divi.modalLibrary.addModule.moduleList', 'my-plugin',
 
 ### Build Process
 
-All build commands are now available from the root directory for better plugin architecture and scalability:
+Root scripts orchestrate installs and builds. Each example still has its **own** `node_modules` (no npm workspaces), so installs stay isolated and webpack configs do not fight over hoisting.
 
 ```bash
-# Development
-npm run start
+# Install dependencies in all three packages (one command from root)
+npm run install:all
 
-# Production build
+# Production build — all three (fails fast: first error stops the chain)
 npm run build
 
-# Development build
+# Production build — one package only
+npm run build:module-visibility
+npm run build:post-keyword
+npm run build:modal-field-showcase
+
+# Development builds — all three or one at a time
 npm run build:dev
+npm run build:dev:modal-field-showcase
+
+# Watch mode (module-visibility only — use per-folder npm run start for others)
+npm run start
 
 # Create distribution package
 npm run zip
 ```
 
-**Note**: The build commands delegate to the `module-visibility-manager/` subdirectory internally, but can be run from the root level for convenience.
+**Note:** You can always `cd` into one example folder and run `npm install` / `npm run build` there; root scripts are a convenience wrapper around `npm --prefix <folder>`.
 
 #### Future Architecture Recommendation
 

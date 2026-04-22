@@ -1,0 +1,106 @@
+# Modal Field Showcase (Divi 5 example)
+
+Third example in **D5 Extension Example: Modals**. It complements **Module Visibility** (options + builder bar) and **Post Keyword** (options + hooks) with a **kitchen-sink modal** aimed at issue-style documentation: tabs, in-modal search, footer actions, collapsible groups, many `@divi/field-library` controls, a small custom React control, and **per-post** persistence via `post_meta`.
+
+## Package layout
+
+This folder is its **own webpack package** (local `package.json` + `node_modules`). PHP bootstrap is `d5-extension-example-modal-field-showcase.php`; REST and `divi_visual_builder_settings_data` merge live in the parent **`../d5-extension-example-modals.php`**.
+
+```
+modal-field-showcase/
+├── d5-extension-example-modal-field-showcase.php   # PackageBuildManager: bar script, bundle, CSS
+├── package.json
+├── webpack.config.js
+├── MODAL-TABS-PATTERN.md     # Notes on Tabs vs BodyPanelWrapper / `opened` pitfalls
+├── build/
+│   ├── bundle.js
+│   └── add-toolbar-button.js
+├── styles/
+│   └── bundle.css            # Extracted from `src/modal/showcase-body.css`
+└── src/
+    ├── index.jsx             # divi.modalLibrary.modalMapping
+    ├── add-toolbar-button.js
+    ├── constants.js          # Default settings + SHOWCASE_SETTING_KEY (must match PHP key)
+    ├── hooks/
+    │   ├── index.js
+    │   └── use-showcase-settings.js   # Draft, hydrate, REST save, divi/settings
+    ├── icons/
+    │   ├── index.js
+    │   ├── registerIcons.js
+    │   └── modal-field-showcase/
+    ├── utils/
+    │   ├── merge-spacing.js
+    │   └── merge-border-radius.js
+    └── modal/
+        ├── component.jsx     # WrapperContainer + Header; modalGroup / modalActiveTab wiring
+        ├── showcase-body.jsx # Tabs, SearchBar, groups, fields, Footer
+        └── showcase-body.css # field-showcase-* layout helpers
+```
+
+From the **plugin root**: `npm run build:modal-field-showcase` (after `npm run install:all` or `npm install` in this folder).
+
+## Issue checklist mapping (#48965)
+
+| Request | How this example covers it |
+|--------|----------------------------|
+| Custom builder bar button | `src/add-toolbar-button.js` — `registerBuilderBarButton` |
+| Custom modal | `src/index.jsx` + `src/modal/component.jsx` — `divi.modalLibrary.modalMapping` |
+| Multiple tabs | `Tabs` / `Tab` + panel pattern (same structural idea as core **Add Module** modal) |
+| Search bar | `SearchBar` + local React state filtering (inspector-style search in core uses `useSettingsSearch` from `@divi/modal`; see below) |
+| Footer buttons | `Footer` — Discard (revert draft) / Save to post (REST) |
+| Info + button | `DescriptionText` + `HelpButton` with no-op `onHelpClick` (placeholder; swap in real behavior). No `InfoBox` on `@divi/modal`. |
+| Collapsible groups | `GroupContainer` with multiple `FieldWrapper` rows |
+| Field types | See table below |
+| Custom setting | `TriToggleCluster` — three independent booleans + summary |
+| Post meta | Meta key `_d5_modal_field_showcase_v1` + REST `POST /divi/v1/modal-field-showcase-settings/update` |
+
+## Field types demonstrated
+
+| UI label | Package export | Value notes |
+|----------|----------------|-------------|
+| Label prefix | `Text` | String; `onChange` uses `{ inputValue }`. |
+| Design notes | `TextArea` | String; `{ inputValue }`. |
+| Layout density | `SelectContainer` | Static `options` map (like many `module.json` selects). |
+| Enable polish | `Toggle` | `'on'` / `'off'` in the UI; stored as boolean in PHP meta. |
+| Accent | `ColorPickerContainer` | Same as inspector: opens the color modal via `divi/modal-library`. Raw `ColorPicker` in `inline` mode has no `onPreviewButtonClick`. |
+| Border style / color / width | `SelectContainer`, `ColorPickerContainer`, `RangeContainer` | Composed into `BorderStylesPreview` value. |
+| Border preview | `BorderStylesPreview` | Read-only; **not** a full box-shadow module field (those expect module attrs). |
+| Section padding | `Spacing` | Incremental `onChange` payloads merged via `src/utils/merge-spacing.js`. |
+| Corner radius | `BorderRadius` | Merged via `src/utils/merge-border-radius.js`. |
+| Emphasis scale | `RangeContainer` | `%` unit demo. |
+| Reading measure | `NumericInput` | `em` unit demo. |
+| Custom tri-toggle | Local JSX | Plain React state. |
+
+## Discovering more field types (three methods)
+
+1. **Field library index** — In your Divi 5 theme sources, browse the `@divi/field-library` package (or use your editor’s “go to definition” from an import) for named exports and the `map` object passed through the `divi.fieldLibrary.components.map` filter.
+
+2. **Runtime filter** — `addFilter('divi.fieldLibrary.components.map', ...)` to register or wrap field groups (same pattern Divi uses).
+
+3. **Production shapes** — Inspect shipped `module.json` definitions under `@divi/module-library` in the theme for real `name` / `props` / `type` combinations (e.g. CTA module).
+
+## References for comparison
+
+- Modal layout primitives: exported from `@divi/modal` (see package entry / type definitions in the theme).
+- Command center (info-style UI in Divi): `modal-library` command center; search Divi sources for `et-vb-info-box` if you need markup parity.
+- Inspector-style search hook: `BodyPanelWrapper` / `useSettingsSearch` (re-exported from `@divi/modal`; tied to module/settings stores — this plugin uses **local filter state** on purpose so the example stays self-contained).
+
+## Persistence
+
+- **Hydration:** `divi_visual_builder_settings_data` (priority **20**) adds `modalFieldShowcaseSettings` merged from `currentPage.id` + `get_post_meta( ..., '_d5_modal_field_showcase_v1' )`.
+- **Save:** Footer calls `useFetch` → `POST /divi/v1/modal-field-showcase-settings/update` with `{ postId, data }`. Capability: `edit_posts` on the route; callback also checks `edit_post` for that ID.
+- **New unsaved posts:** No post ID yet → console warning; user should save the page once so meta can attach.
+
+## `GroupContainer` / accordion behavior
+
+`GroupContainer` reads open/closed state from **`modalWrapperContext`**, which `Wrapper` fills from the **`modalGroup`** prop. That object must stay in sync with **`select('divi/modal-library').getModal(modalName).group`**. If you omit it, title clicks still dispatch `openGroup`, but the UI keeps the default `{}`, so with **Group Settings Into Closed Toggles** enabled in preferences every group stays collapsed. This example passes `modalGroup` and sets **`modalActiveTab`** to the same id as **`PanelContainer`** (`field-showcase-panel`).
+
+## Build
+
+```bash
+cd modal-field-showcase
+npm install
+npm run build
+```
+
+Or from the plugin root: `npm run build` (builds all three examples if each folder has `node_modules`).

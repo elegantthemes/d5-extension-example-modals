@@ -1,0 +1,71 @@
+/* Modal Field Showcase — minimal layout helpers (modal chrome comes from Divi). */
+
+/* Info-style callout: compact copy + HelpButton (core `.et-vb-help-button` uses heavy padding). */
+.field-showcase-infobox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 8px 10px 8px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(43, 135, 218, 0.35);
+  border-left-width: 3px;
+  border-left-color: #2b87da;
+  background: rgba(43, 135, 218, 0.09);
+  box-sizing: border-box;
+}
+
+.field-showcase-infobox__action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.field-showcase-infobox .et-vb-help-button {
+  padding: 4px;
+  margin: 0;
+  min-height: 0;
+  line-height: 1;
+  align-self: center;
+}
+
+.field-showcase-infobox .et-vb-help-button .et-vb-icon--divi-help-circle {
+  display: block;
+}
+
+.field-showcase-infobox__text {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 400;
+  opacity: 0.92;
+}
+
+.field-showcase-tri-toggle__summary {
+  margin: 0 0 8px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.field-showcase-tri-toggle__buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.field-showcase-tri-toggle__btn {
+  min-width: 40px;
+  padding: 6px 10px;
+  border-radius: 3px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.field-showcase-tri-toggle__btn--on {
+  border-color: #2b87da;
+  background: rgba(43, 135, 218, 0.15);
+}
