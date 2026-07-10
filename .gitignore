@@ -1,7 +1,15 @@
 # Node.js dependencies
 node_modules/
 module-visibility-manager/node_modules/
+post-keyword-manager/node_modules/
+modal-field-showcase/node_modules/
+
+# PHP test dependencies
+tests/php/vendor/
+tests/php/.env
 
 # Build artifacts
 *.zip
 
+# Local PR notes (not for repo)
+pr-pull-request.md
