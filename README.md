@@ -227,7 +227,7 @@ npm run build
 # PHP test dependencies and local config
 cp tests/php/.env.example tests/php/.env
 # Edit tests/php/.env — set DIVI_PATH, WP_ROOT_DIRECTORY, database credentials, etc.
-composer install --working-dir=tests/php
+composer install
 ```
 
 #### Run tests
@@ -245,7 +245,7 @@ npm run test:modal-field-showcase
 cd module-visibility-manager && npm test
 
 # PHPUnit smoke test (plugin load)
-composer test --working-dir=tests/php
+composer test
 ```
 
 Shared Jest config lives in `test-config/` (RTL from day one, no Enzyme). PHPUnit bootstrap and smoke tests live in `tests/php/`.

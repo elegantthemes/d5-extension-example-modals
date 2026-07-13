@@ -1,13 +1,11 @@
 {
-    "name": "divi/d5-extension-example-modals-tests",
+    "name": "divi/d5-extension-example-modals",
+    "require": {},
     "require-dev": {
         "phpunit/phpunit": "^9.6",
         "yoast/phpunit-polyfills": "^2.0"
     },
     "scripts": {
         "test": "phpunit"
-    },
-    "config": {
-        "vendor-dir": "vendor"
     }
 }
