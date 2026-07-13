@@ -5,7 +5,7 @@ post-keyword-manager/node_modules/
 modal-field-showcase/node_modules/
 
 # PHP test dependencies
-tests/php/vendor/
+vendor/
 tests/php/.env
 
 # Build artifacts

@@ -15,10 +15,10 @@ if ( ! defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	define( 'WP_TESTS_CONFIG_FILE_PATH', __DIR__ . '/wp-tests-config.php' );
 }
 
-$phpunit_polyfills_autoload_path = D5_EXTENSION_EXAMPLE_MODALS_PLUGIN_ROOT . '/tests/php/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+$phpunit_polyfills_autoload_path = D5_EXTENSION_EXAMPLE_MODALS_PLUGIN_ROOT . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 
 if ( ! file_exists( $phpunit_polyfills_autoload_path ) ) {
-	fwrite( STDERR, 'Error: PHPUnit Polyfills autoload file is missing. Run `composer install` in tests/php first.' . PHP_EOL );
+	fwrite( STDERR, 'Error: PHPUnit Polyfills autoload file is missing. Run `composer install` from the plugin root first.' . PHP_EOL );
 	exit( 1 );
 }
 
