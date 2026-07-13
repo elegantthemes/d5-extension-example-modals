@@ -29,6 +29,7 @@ import {
 } from '@divi/modal';
 
 import { useShowcaseSettings } from '../hooks';
+import { groupVisible } from '../utils/group-visible';
 import { mergeBorderRadiusChange } from '../utils/merge-border-radius';
 import { mergeSpacingChange } from '../utils/merge-spacing';
 
@@ -36,32 +37,6 @@ import './showcase-body.css';
 
 const TAB_CONTENT = 'content';
 const TAB_APPEARANCE = 'appearance';
-
-// Local filter for tutorial clarity: core inspector uses `useSettingsSearch` + the modal tab store; this example keeps search state in React and hides whole `GroupContainer` blocks when nothing matches.
-/**
- * @param {Object} props Props.
- * @param {string} props.query Search query.
- * @param {string} props.activeTab Active tab id.
- * @returns {boolean} Whether to show the group.
- */
-const groupVisible = (props) => {
-  const { query, activeTab, tab, title, keywords } = props;
-  const q = (query || '').trim().toLowerCase();
-
-  if (activeTab !== tab) {
-    return false;
-  }
-
-  if (!q) {
-    return true;
-  }
-
-  if (title.toLowerCase().includes(q)) {
-    return true;
-  }
-
-  return keywords.some(k => k.toLowerCase().includes(q));
-};
 
 /**
  * Three independent toggles with a combined summary (tutorial custom control).
