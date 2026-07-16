@@ -1,18 +1,12 @@
-import { applyFilters, addFilter } from '@wordpress/hooks';
+import { applyFilters, hasFilter } from '@wordpress/hooks';
+
+import '../hooks/use-reactive-module-filter';
 
 import {
-	applyModuleListVisibilityFilter,
 	filterModuleFolderList,
 	getHiddenModulesFromSettings,
 	syncHiddenModulesForFilter,
 } from '../utils/module-visibility';
-
-addFilter(
-	'divi.modalLibrary.addModule.moduleList',
-	'moduleVisibilityManager-test',
-	applyModuleListVisibilityFilter,
-	10
-);
 
 describe( 'module visibility settings selector', () => {
 	it( 'returns only hidden modules from settings data', () => {
@@ -41,6 +35,10 @@ describe( 'moduleList filter', () => {
 		'divi/button': { title: 'Button' },
 	};
 
+	beforeEach( () => {
+		syncHiddenModulesForFilter( [] );
+	} );
+
 	it( 'returns the same keys when nothing is hidden', () => {
 		const filtered = filterModuleFolderList( moduleFolderList, [] );
 
@@ -66,7 +64,16 @@ describe( 'moduleList filter', () => {
 		expect( filtered ).toEqual( moduleFolderList );
 	} );
 
-	it( 'applies via divi.modalLibrary.addModule.moduleList hook', () => {
+	it( 'registers the production moduleList filter on app load', () => {
+		expect(
+			hasFilter(
+				'divi.modalLibrary.addModule.moduleList',
+				'moduleVisibilityManager'
+			)
+		).toBeTruthy();
+	} );
+
+	it( 'applies via the app-registered divi.modalLibrary.addModule.moduleList hook', () => {
 		syncHiddenModulesForFilter( [
 			{ nodeName: 'divi/blurb', visible: false },
 		] );

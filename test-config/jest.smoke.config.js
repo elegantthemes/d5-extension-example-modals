@@ -6,6 +6,7 @@ module.exports = {
   rootDir:    pluginRootDirectory,
   preset:     '@wordpress/jest-preset-default',
   moduleNameMapper: {
+    '^@divi/data$':            resolve(__dirname, 'mocks/divi-data.js'),
     '^@divi/modal$':           resolve(__dirname, 'mocks/divi-modal.jsx'),
     '^@divi/error-boundary$':  resolve(__dirname, 'mocks/divi-error-boundary.jsx'),
   },
