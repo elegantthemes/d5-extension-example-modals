@@ -250,6 +250,101 @@ The zip command automatically excludes:
 - Build configuration files (`gulpfile.js`, `package.json`, etc.)
 - IDE and system files (`.vscode/`, `.DS_Store`, etc.)
 
+## Tests
+
+The `test-config` folder holds shared Jest + React Testing Library configuration for JavaScript tests. Package tests live in each example’s `src/__tests__` folder. PHP unit tests use PHPUnit from the plugin root when the Track C harness (EX-06+) is merged.
+
+### Local test prerequisites
+
+Tests run locally against your WordPress and Divi installs. Set the following environment variables before running Jest tests that load Divi packages:
+
+```bash
+export DIVI_PATH=/absolute/path/to/wp-content/themes/Divi
+export DIVIDIR=$DIVI_PATH/includes/builder-5/visual-builder/build
+export WPDIR=/absolute/path/to/wordpress/root/folder
+```
+
+For PHP tests, copy `tests/php/.env.example` to `tests/php/.env` and update the database and WordPress paths for your environment.
+
+Build assets before running tests:
+
+```bash
+npm run install:all
+npm run build
+composer install   # when composer.json is present (Track C harness)
+npm test           # when root test scripts are present (Track C harness)
+composer test      # when phpunit.xml is present (Track C harness)
+```
+
+### Manual VB testing
+
+Track C **L3** checklists for flows automated tests do not cover: live Visual Builder integration, save/reload persistence, drag-and-resize modal chrome, and real Add Module / REST behavior inside WordPress + Divi. Use these steps when you need to verify modal behavior manually in the Visual Builder.
+
+#### Prerequisites
+
+- Local WordPress with **Divi 5** active.
+- This plugin cloned or symlinked into `wp-content/plugins/d5-extension-example-modals`.
+- A **saved post or page** when testing **modal-field-showcase** (post meta persistence requires a post ID).
+
+#### Build and activate
+
+Run these commands from the plugin root before opening the Visual Builder:
+
+```bash
+npm run install:all
+npm run build
+```
+
+Then in WordPress admin:
+
+1. Go to **Plugins**.
+2. Activate **D5 Extension Example: Modals**.
+3. Create or open a test page, **save it once** (required for field showcase meta), and launch the **Visual Builder**.
+
+#### module-visibility-manager
+
+Builder bar button: **Module Visibility** (`divi/module-visibility-manager`). Settings persist in `wp_options` as `divi_module_visibility_settings`.
+
+- [ ] Click **Module Visibility** on the builder toolbar — the modal opens.
+- [ ] Confirm the module list loads with checkboxes (for example **Blurb**, `divi/blurb`).
+- [ ] Uncheck a module — it disappears from the **Add Module** dialog without reloading the page.
+- [ ] Re-check the module — it reappears in **Add Module**.
+- [ ] Reload the Visual Builder (or refresh the browser) — hidden modules stay hidden.
+- [ ] Drag, resize, expand, and snap the modal — chrome behaves as expected.
+
+#### post-keyword-manager
+
+Builder bar button: **Post Keywords** (`divi/post-keyword-manager`). Focus keyword persists in `wp_options` as `divi_post_keyword_settings`.
+
+- [ ] Click **Post Keywords** on the builder toolbar — the modal opens.
+- [ ] Confirm **Post Information** shows the current page title and post ID.
+- [ ] Enter a recognizable focus keyword (for example, `manual-vb-keyword-check`) in **Focus Keyword**.
+- [ ] Wait briefly for the debounced save, then reload the Visual Builder — the keyword is still present.
+- [ ] Save the page and check the browser console for keyword-density analysis output (hook demo).
+
+#### modal-field-showcase
+
+Builder bar button: **Field showcase** (`divi/modal-field-showcase`). Settings persist in post meta `_d5_modal_field_showcase_v1` via REST. **Requires a saved post.**
+
+- [ ] Open the Visual Builder on a **saved** post (not a brand-new unsaved layout).
+- [ ] Click **Field showcase** on the builder toolbar — the modal opens.
+- [ ] Switch between **Content & labels** and **Appearance tokens** tabs — the correct field groups appear.
+- [ ] Type in the search bar (for example, `accent`) — unrelated groups hide.
+- [ ] Change **Label prefix** (or another field), click **Discard changes** — values revert to the last saved state.
+- [ ] Change **Label prefix** again, click **Save to post** — save completes without error.
+- [ ] Reload the Visual Builder — saved values are still shown in the modal.
+- [ ] Drag, resize, expand, and snap the modal — chrome behaves as expected.
+
+#### Related automated tests
+
+| Package | Automated coverage |
+|---------|-------------------|
+| module-visibility-manager | Store selector + `moduleList` hook integration; modal shell snapshot; PHP bootstrap and settings hydration |
+| post-keyword-manager | Keyword settings helpers; modal shell snapshot; PHP REST route and sanitize |
+| modal-field-showcase | Field defaults, merge utils, `groupVisible`; showcase body snapshot; PHP REST and post-meta hydration |
+
+Run `composer test` and `npm test` after `npm run build` for automated L1/L2 coverage when the Track C harness is available.
+
 ## 🐛 **Troubleshooting**
 
 ### Modal Doesn't Appear
