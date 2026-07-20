@@ -278,7 +278,7 @@ composer test      # when phpunit.xml is present (Track C harness)
 
 ### Manual VB testing
 
-Track C **L3** checklists for flows automated tests do not cover: live Visual Builder integration, save/reload persistence, drag-and-resize modal chrome, and real Add Module / REST behavior inside WordPress + Divi. Use these steps when you need to verify modal behavior manually in the Visual Builder.
+Track C **L3** documentation for flows automated tests do not cover: live Visual Builder integration, save/reload persistence, drag-and-resize modal chrome, and real Add Module / REST behavior inside WordPress + Divi. Each example below lists **capabilities you can test** manually in the Visual Builder.
 
 #### Prerequisites
 
@@ -301,39 +301,44 @@ Then in WordPress admin:
 2. Activate **D5 Extension Example: Modals**.
 3. Create or open a test page, **save it once** (required for field showcase meta), and launch the **Visual Builder**.
 
-#### module-visibility-manager
+#### Module Visibility (`divi/module-visibility-manager`)
 
-Builder bar button: **Module Visibility** (`divi/module-visibility-manager`). Settings persist in `wp_options` as `divi_module_visibility_settings`.
+Toolbar button in the Visual Builder. Settings persist in `wp_options` as `divi_module_visibility_settings`.
 
-- [ ] Click **Module Visibility** on the builder toolbar — the modal opens.
-- [ ] Confirm the module list loads with checkboxes (for example **Blurb**, `divi/blurb`).
-- [ ] Uncheck a module — it disappears from the **Add Module** dialog without reloading the page.
-- [ ] Re-check the module — it reappears in **Add Module**.
-- [ ] Reload the Visual Builder (or refresh the browser) — hidden modules stay hidden.
-- [ ] Drag, resize, expand, and snap the modal — chrome behaves as expected.
+**What you can do:**
 
-#### post-keyword-manager
+- Open the **Module Visibility** modal from the builder toolbar
+- Browse all available modules in a checkbox list (for example **Blurb**, `divi/blurb`)
+- Hide modules from the **Add Module** dialog by unchecking them — updates instantly, no page reload
+- Show modules again by re-checking them — they return to **Add Module** right away
+- Keep your visibility choices after reloading the Visual Builder or refreshing the browser
+- Move and arrange the modal — drag, resize, expand, and snap it like other Divi modals
 
-Builder bar button: **Post Keywords** (`divi/post-keyword-manager`). Focus keyword persists in `wp_options` as `divi_post_keyword_settings`.
+#### Post Keywords (`divi/post-keyword-manager`)
 
-- [ ] Click **Post Keywords** on the builder toolbar — the modal opens.
-- [ ] Confirm **Post Information** shows the current page title and post ID.
-- [ ] Enter a recognizable focus keyword (for example, `manual-vb-keyword-check`) in **Focus Keyword**.
-- [ ] Wait briefly for the debounced save, then reload the Visual Builder — the keyword is still present.
-- [ ] Save the page and check the browser console for keyword-density analysis output (hook demo).
+Toolbar button in the Visual Builder. Focus keyword persists in `wp_options` as `divi_post_keyword_settings`.
 
-#### modal-field-showcase
+**What you can do:**
 
-Builder bar button: **Field showcase** (`divi/modal-field-showcase`). Settings persist in post meta `_d5_modal_field_showcase_v1` via REST. **Requires a saved post.**
+- Open the **Post Keywords** modal from the builder toolbar
+- Review **Post Information** for the current page title, ID, type, and status
+- Enter and edit a focus keyword — it saves automatically to the database as you type
+- Reload the Visual Builder and confirm the keyword is still present
+- Save the page and review keyword-density analysis output in the browser console (hook demo)
 
-- [ ] Open the Visual Builder on a **saved** post (not a brand-new unsaved layout).
-- [ ] Click **Field showcase** on the builder toolbar — the modal opens.
-- [ ] Switch between **Content & labels** and **Appearance tokens** tabs — the correct field groups appear.
-- [ ] Type in the search bar (for example, `accent`) — unrelated groups hide.
-- [ ] Change **Label prefix** (or another field), click **Discard changes** — values revert to the last saved state.
-- [ ] Change **Label prefix** again, click **Save to post** — save completes without error.
-- [ ] Reload the Visual Builder — saved values are still shown in the modal.
-- [ ] Drag, resize, expand, and snap the modal — chrome behaves as expected.
+#### Field showcase (`divi/modal-field-showcase`)
+
+Toolbar button in the Visual Builder. Settings persist in post meta `_d5_modal_field_showcase_v1` via REST. **Requires a saved post.**
+
+**What you can do:**
+
+- Open the **Field showcase** modal on a **saved** post (not a brand-new unsaved layout)
+- Switch between **Content & labels** and **Appearance tokens** tabs
+- Filter field groups with the search bar (for example, type `accent` to narrow the list)
+- Edit fields locally, then click **Discard changes** to revert to the last saved state
+- Edit fields and click **Save to post** to persist settings to post meta
+- Reload the Visual Builder and confirm saved values are still shown in the modal
+- Move and arrange the modal — drag, resize, expand, and snap it like other Divi modals
 
 #### Related automated tests
 
