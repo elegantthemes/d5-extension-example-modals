@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PostKeywordManagerModal renders the modal shell with header and body panel 1`] = `"<div data-testid="error-boundary"><div data-testid="wrapper-container" data-modal-name="divi/post-keyword-manager" data-draggable="true" data-resizable="true" data-expandable="true" data-snappable="true"><header data-testid="modal-header">Post Keyword Manager</header><div data-testid="modal-body"><div data-testid="modal-panel" id="post-keyword-manager" data-opened="true"><div data-testid="keyword-form-stub">Keyword form stub</div></div></div></div></div>"`;
