@@ -1,6 +1,13 @@
 import React from 'react';
 
-export const WrapperContainer = ( { children, modalName, draggable, resizable, expandable, snappable } ) => (
+export const WrapperContainer = ( {
+	children,
+	modalName,
+	draggable,
+	resizable,
+	expandable,
+	snappable,
+} ) => (
 	<div
 		data-testid="wrapper-container"
 		data-modal-name={ modalName }
