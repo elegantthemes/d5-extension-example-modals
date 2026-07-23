@@ -250,6 +250,106 @@ The zip command automatically excludes:
 - Build configuration files (`gulpfile.js`, `package.json`, etc.)
 - IDE and system files (`.vscode/`, `.DS_Store`, etc.)
 
+## Tests
+
+The `test-config` folder holds shared Jest + React Testing Library configuration for JavaScript tests. Package tests live in each example’s `src/__tests__` folder. PHP unit tests use PHPUnit from the plugin root when the Track C harness (EX-06+) is merged.
+
+### Local test prerequisites
+
+Tests run locally against your WordPress and Divi installs. Set the following environment variables before running Jest tests that load Divi packages:
+
+```bash
+export DIVI_PATH=/absolute/path/to/wp-content/themes/Divi
+export DIVIDIR=$DIVI_PATH/includes/builder-5/visual-builder/build
+export WPDIR=/absolute/path/to/wordpress/root/folder
+```
+
+For PHP tests, copy `tests/php/.env.example` to `tests/php/.env` and update the database and WordPress paths for your environment.
+
+Build assets before running tests:
+
+```bash
+npm run install:all
+npm run build
+composer install   # when composer.json is present (Track C harness)
+npm test           # when root test scripts are present (Track C harness)
+composer test      # when phpunit.xml is present (Track C harness)
+```
+
+### Manual VB testing
+
+Track C **L3** documentation for flows automated tests do not cover: live Visual Builder integration, save/reload persistence, drag-and-resize modal chrome, and real Add Module / REST behavior inside WordPress + Divi. Each example below lists **capabilities you can test** manually in the Visual Builder.
+
+#### Prerequisites
+
+- Local WordPress with **Divi 5** active.
+- This plugin cloned or symlinked into `wp-content/plugins/d5-extension-example-modals`.
+- A **saved post or page** when testing **modal-field-showcase** (post meta persistence requires a post ID).
+
+#### Build and activate
+
+Run these commands from the plugin root before opening the Visual Builder:
+
+```bash
+npm run install:all
+npm run build
+```
+
+Then in WordPress admin:
+
+1. Go to **Plugins**.
+2. Activate **D5 Extension Example: Modals**.
+3. Create or open a test page, **save it once** (required for field showcase meta), and launch the **Visual Builder**.
+
+#### Module Visibility (`divi/module-visibility-manager`)
+
+Toolbar button in the Visual Builder. Settings persist in `wp_options` as `divi_module_visibility_settings`.
+
+**What you can do:**
+
+- Open the **Module Visibility** modal from the builder toolbar
+- Browse all available modules in a checkbox list (for example **Blurb**, `divi/blurb`)
+- Hide modules from the **Add Module** dialog by unchecking them — updates instantly, no page reload
+- Show modules again by re-checking them — they return to **Add Module** right away
+- Keep your visibility choices after reloading the Visual Builder or refreshing the browser
+- Move and arrange the modal — drag, resize, expand, and snap it like other Divi modals
+
+#### Post Keywords (`divi/post-keyword-manager`)
+
+Toolbar button in the Visual Builder. Focus keyword persists in `wp_options` as `divi_post_keyword_settings`.
+
+**What you can do:**
+
+- Open the **Post Keywords** modal from the builder toolbar
+- Review **Post Information** for the current page title, ID, type, and status
+- Enter and edit a focus keyword — it saves automatically to the database as you type
+- Reload the Visual Builder and confirm the keyword is still present
+- Save the page and review keyword-density analysis output in the browser console (hook demo)
+
+#### Field showcase (`divi/modal-field-showcase`)
+
+Toolbar button in the Visual Builder. Settings persist in post meta `_d5_modal_field_showcase_v1` via REST. **Requires a saved post.**
+
+**What you can do:**
+
+- Open the **Field showcase** modal on a **saved** post (not a brand-new unsaved layout)
+- Switch between **Content & labels** and **Appearance tokens** tabs
+- Filter field groups with the search bar (for example, type `accent` to narrow the list)
+- Edit fields locally, then click **Discard changes** to revert to the last saved state
+- Edit fields and click **Save to post** to persist settings to post meta
+- Reload the Visual Builder and confirm saved values are still shown in the modal
+- Move and arrange the modal — drag, resize, expand, and snap it like other Divi modals
+
+#### Related automated tests
+
+| Package | Automated coverage |
+|---------|-------------------|
+| module-visibility-manager | Store selector + `moduleList` hook integration; modal shell snapshot; PHP bootstrap and settings hydration |
+| post-keyword-manager | Keyword settings helpers; modal shell snapshot; PHP REST route and sanitize |
+| modal-field-showcase | Field defaults, merge utils, `groupVisible`; showcase body snapshot; PHP REST and post-meta hydration |
+
+Run `composer test` and `npm test` after `npm run build` for automated L1/L2 coverage when the Track C harness is available.
+
 ## 🐛 **Troubleshooting**
 
 ### Modal Doesn't Appear
