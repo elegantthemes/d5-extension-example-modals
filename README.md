@@ -201,6 +201,55 @@ npm run zip
 
 **Note:** You can always `cd` into one example folder and run `npm install` / `npm run build` there; root scripts are a convenience wrapper around `npm --prefix <folder>`.
 
+### Testing
+
+Automated tests live in this plugin repo and require a local Divi install. They do not modify Divi or WordPress core.
+
+#### Prerequisites
+
+Set these environment variables for your machine (or rely on the default relative paths when the plugin sits under `wp-content/plugins/`):
+
+| Variable | Used by | Purpose |
+|----------|---------|---------|
+| `DIVI_PATH` | PHPUnit | Absolute path to the Divi theme root |
+| `DIVIDIR` | Jest (optional) | Path to `Divi/includes/builder-5/visual-builder/build` |
+| `WPDIR` | Jest (optional) | WordPress root if not inferred from the plugin location |
+
+#### One-time setup
+
+```bash
+# Install JS dependencies (root test deps + all three example packages)
+npm run install:all
+
+# Build production assets
+npm run build
+
+# PHP test dependencies and local config
+cp tests/php/.env.example tests/php/.env
+# Edit tests/php/.env — set DIVI_PATH, WP_ROOT_DIRECTORY, database credentials, etc.
+composer install
+```
+
+#### Run tests
+
+```bash
+# Jest smoke tests — all three examples
+npm test
+
+# Jest smoke tests — one example
+npm run test:module-visibility
+npm run test:post-keyword
+npm run test:modal-field-showcase
+
+# Or from an example folder
+cd module-visibility-manager && npm test
+
+# PHPUnit smoke test (plugin load)
+composer test
+```
+
+Shared Jest config lives in `test-config/` (RTL from day one, no Enzyme). PHPUnit bootstrap and smoke tests live in `tests/php/`.
+
 #### Future Architecture Recommendation
 
 For better scalability when adding more modals, consider this structure:

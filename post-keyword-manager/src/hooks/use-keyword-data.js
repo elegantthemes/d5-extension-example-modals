@@ -2,6 +2,11 @@ import { useSelect, useDispatch } from '@divi/data';
 import { useFetch } from '@divi/rest';
 import { debounce } from 'lodash';
 
+import {
+	buildKeywordUpdate,
+	getFocusKeywordFromSettings,
+} from '../utils/keyword-settings';
+
 /**
  * Custom hook for accessing post keyword data.
  *
@@ -36,7 +41,7 @@ export const useKeywordData = () => {
   );
 
   return {
-    focusKeyword: settingsData?.focusKeyword || '',
+    focusKeyword: getFocusKeywordFromSettings( settingsData ),
   };
 };
 
@@ -94,15 +99,11 @@ export const usePostKeywordManager = () => {
 
   // Function to update focus keyword
   const updateFocusKeyword = (focusKeyword) => {
-    const updatedData = {
-      ...keywordData,
-      focusKeyword
-    };
-    updateKeywordData(updatedData);
+    updateKeywordData( buildKeywordUpdate( keywordData, focusKeyword ) );
   };
 
   return {
-    focusKeyword: keywordData?.focusKeyword || '',
+    focusKeyword: getFocusKeywordFromSettings( keywordData ),
     updateFocusKeyword,
   };
 };
